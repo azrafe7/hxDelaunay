@@ -8,7 +8,7 @@ Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) 
 Changes:
 
  - Added minimal OpenFL demo
- - Should work on cpp target (but neko still giving problems)
+ - Fixed for cpp & neko targets
  - Added crosstarget hitTest support (for `keepOutMask`)
  - Ported to Haxe 3.1 (flash) 
 
