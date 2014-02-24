@@ -5,6 +5,10 @@ import flash.display.BitmapData;
 
 import com.nodename.geom.LineSegment;
 
+#if (!flash)
+using net.azrafe7.tools.BitmapDataTools;
+#end
+
 
 class SelectHelper {
 
