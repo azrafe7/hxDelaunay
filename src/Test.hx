@@ -10,7 +10,9 @@ import flash.display.Graphics;
 import flash.display.LineScaleMode;
 import flash.display.Sprite;
 import flash.display.Stage;
+import flash.events.Event;
 import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
 import flash.filters.GlowFilter;
 import flash.geom.Point;
 import flash.geom.Rectangle;
@@ -37,16 +39,18 @@ class Test extends Sprite {
 	private var g:Graphics;
 
 	private var POINT_COLOR:Int = 0x00F000;
-	private var REGION_COLOR:Int = 0x0020F0;
+	private var REGION_COLOR:Int = 0x4000F0;
 	private var MIN_FILL_COLOR:Int = 0x200040;
 	private var MAX_FILL_COLOR:Int = 0x4000A0;
-	private var FILL_ALPHA:Float = 1.;
-	private var TRIANGLE_COLOR:Int = 0xFF0000;
-	private var HULL_COLOR:Int = 0x3090F0;
-	private var TREE_COLOR:Int = 0xA0A010;
+	private var TRIANGLE_COLOR:Int = 0xF00000;
+	private var HULL_COLOR:Int = 0x30F090;
+	private var TREE_COLOR:Int = 0xF0C020;
+	private var ONION_COLOR:Int = 0x10A0FF;
+	private var SELECTED_COLOR:Int = 0x8020F0;
 	
 	private var THICKNESS:Float = 1.5;
-	private var ALPHA:Float = .8;
+	private var ALPHA:Float = 1.;
+	private var FILL_ALPHA:Float = 1.;
 
 	private var TEXT_COLOR:Int = 0xFFFFFFFF;
 	private var TEXT_FONT:String = "_typewriter";
@@ -59,10 +63,19 @@ class Test extends Sprite {
 	private var nPoints:Int = 25;
 	private var points:Array<Point>;
 	private var regions:Array<Array<Point>>;
+	private var sortedRegions:Array<Array<Point>>;
 	private var fillColors:Array<Int>;
 	private var triangles:Array<LineSegment>;
 	private var hull:Array<LineSegment>;
 	private var tree:Array<LineSegment>;
+	private var onion:Array<Array<Point>>;
+	private var proxymitySprite:Sprite;
+	private var proxymityMap:BitmapData;
+	private var selectedRegion:Array<Point>;
+	
+	private var isMouseDown:Bool = false;
+	private var prevMousePos:Point = new Point();
+	private var mousePos:Point = new Point();
 
 	private var showPoints:Bool = true;
 	private var showRegions:Bool = true;
@@ -70,6 +83,8 @@ class Test extends Sprite {
 	private var showTriangles:Bool = false;
 	private var showHull:Bool = false;
 	private var showTree:Bool = false;
+	private var showOnion:Bool = false;
+	private var showProximityMap:Bool = false;
 	
 	private var text:TextField;
 	
@@ -84,11 +99,16 @@ class Test extends Sprite {
 		" 4  triangles     : |TRIANGLES|\n" +
 		" 5  convex hull   : |HULL|\n" + 
 		" 6  spanning tree : |TREE|\n" +
+		" 7  onion         : |ONION|\n" +
+		" 8  proximityMap  : |PROXIMITY|\n" +
 		"\n\n" +
 		"        POINTS: (|NPOINTS|)\n\n" +
 		" +  add\n" +
 		" -  remove\n\n" +
-		" R  randomize\n";
+		" R  randomize\n" +
+		"\n\n" +
+		"      click & drag to\n" +
+		"     move region point";
 	
 		
 	public function new () {
@@ -110,7 +130,11 @@ class Test extends Sprite {
 		render();	// draw
 		
 		//stage.addChild(new FPS(5, 5, 0xFFFFFF));
+		stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+		stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+		stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+		stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 	}
 
 	
@@ -119,18 +143,29 @@ class Test extends Sprite {
 	{
 		voronoi = new Voronoi(points, null, BOUNDS);
 		regions = [for (p in points) voronoi.region(p)];
+		sortedRegions = voronoi.regions();
 		triangles = voronoi.delaunayTriangulation();
 		hull = voronoi.hull();
 		tree = voronoi.spanningTree();
+		onion = calcOnion(voronoi);
+		updateProximityMap();
 	}
 	
 	public function render():Void {
 		g.clear();
-		drawRegions();
-		drawTriangles();
-		drawTree();
-		drawHull();
-		drawPoints();
+		
+		if (showRegions) drawRegions();
+		if (showProximityMap) {
+			g.beginBitmapFill(proxymityMap);
+			g.drawRect(0, 0, BOUNDS.width, BOUNDS.height);
+			g.endFill();
+		}
+		if (showTriangles) drawTriangles();
+		if (showTree) drawTree();
+		if (showOnion) drawOnion();
+		if (showHull) drawHull();
+		if (showPoints) drawSiteCoords();
+		if (selectedRegion != null) drawPoints(selectedRegion, SELECTED_COLOR);
 		
 		text.text = TEXT
 			.replace("|POINTS|", bool2OnOff(showPoints))
@@ -139,6 +174,8 @@ class Test extends Sprite {
 			.replace("|TRIANGLES|", bool2OnOff(showTriangles))
 			.replace("|HULL|", bool2OnOff(showHull))
 			.replace("|TREE|", bool2OnOff(showTree))
+			.replace("|ONION|", bool2OnOff(showOnion))
+			.replace("|PROXIMITY|", bool2OnOff(showProximityMap))
 			.replace("|NPOINTS|", Std.string(nPoints));
 			
 	}
@@ -148,11 +185,49 @@ class Test extends Sprite {
 		return (v ? "[ON]" : "[OFF]");
 	}
 	
+	public function updateProximityMap():Void {
+		if (proxymityMap == null) {
+			proxymityMap = new BitmapData(Std.int(BOUNDS.width), Std.int(BOUNDS.height), false);
+			proxymitySprite = new Sprite();
+		} 
+		var graphics = proxymitySprite.graphics;
+		proxymityMap.fillRect(proxymityMap.rect, 0xFFFFFFFF);
+		graphics.clear();
+		
+		for (i in 0...sortedRegions.length) {
+			graphics.lineStyle(1, i, 1);	// no borders
+			graphics.beginFill(i);
+			var points = sortedRegions[i];
+			for (p in points) {
+				if (p == points[0]) graphics.moveTo(p.x, p.y);
+				else graphics.lineTo(p.x, p.y);
+			}
+			graphics.endFill();
+		}
+		proxymityMap.draw(proxymitySprite);
+	}
 	
-	
-	public function drawPoints():Void 
+	public function calcOnion(voronoi:Voronoi):Array<Array<Point>> 
 	{
-		if (!showPoints) return;
+		var res = new Array<Array<Point>>();
+		var points = voronoi.siteCoords();
+		
+		while (points.length > 2) {
+			var v:Voronoi = new Voronoi(points, null, voronoi.getPlotBounds());
+			var peel = v.hullPointsInOrder();
+			for (p in peel) points.remove(p);
+			res.push(peel);
+			v.dispose();
+		}
+		if (points.length > 0) res.push(points);
+		
+		return res;
+	}
+	
+	
+	
+	public function drawSiteCoords():Void 
+	{
 		g.lineStyle(THICKNESS, POINT_COLOR, ALPHA);
 		for (p in points) {
 			g.drawCircle(p.x, p.y, 2);
@@ -161,58 +236,66 @@ class Test extends Sprite {
 
 	public function drawRegions():Void 
 	{
-		if (!showRegions) return;
-		g.lineStyle(THICKNESS, REGION_COLOR, ALPHA);
-		
 		var fillIdx = -1;
 		for (region in regions) {
-			if (fillRegions) {
-				fillIdx = (fillIdx + 1) % fillColors.length;
-				g.beginFill(fillColors[fillIdx], FILL_ALPHA);
-			}
+			if (fillRegions) fillIdx = (fillIdx + 1) % fillColors.length;
 			
-			g.moveTo(region[0].x, region[0].y);
-			for (i in 1...region.length) {
-				g.lineTo(region[i].x, region[i].y);
-			}
-			g.endFill();
+			drawPoints(region, REGION_COLOR, fillRegions ? fillColors[fillIdx] : null);
 		}
 	}
 	
-	public function drawTriangles():Void 
+	inline public function drawTriangles():Void 
 	{
-		if (!showTriangles) return;
-		g.lineStyle(THICKNESS, TRIANGLE_COLOR, ALPHA);
-		
-		for (segment in triangles) {
-			g.moveTo(segment.p0.x, segment.p0.y);
-			g.lineTo(segment.p1.x, segment.p1.y);
-		}
+		drawSegments(triangles, TRIANGLE_COLOR);
 	}
 	
-	public function drawHull():Void 
+	inline public function drawHull():Void 
 	{
-		if (!showHull) return;
-		g.lineStyle(THICKNESS, HULL_COLOR, ALPHA);
-		
-		for (segment in hull) {
-			g.moveTo(segment.p0.x, segment.p0.y);
-			g.lineTo(segment.p1.x, segment.p1.y);
-		}
+		drawSegments(hull, HULL_COLOR);
 	}
 	
-	public function drawTree():Void 
+	inline public function drawTree():Void 
 	{
-		if (!showTree) return;
-		g.lineStyle(THICKNESS, TREE_COLOR, ALPHA);
-		
-		for (segment in tree) {
-			g.moveTo(segment.p0.x, segment.p0.y);
-			g.lineTo(segment.p1.x, segment.p1.y);
+		drawSegments(tree, TREE_COLOR);
+	}
+
+	public function drawOnion():Void 
+	{
+		for (peel in onion) {
+			drawPoints(peel, ONION_COLOR);
 		}
 	}
 	
 
+	
+	// generic draw function for segments
+	public function drawSegments(segments:Array<LineSegment>, color:Int, ?fillColor:Int = null) {
+		g.lineStyle(THICKNESS, color, ALPHA);
+		if (fillColor != null) g.beginFill(fillColor, FILL_ALPHA);
+		else g.beginFill(0, 0);
+		
+		for (segment in segments) {
+			g.moveTo(segment.p0.x, segment.p0.y);
+			g.lineTo(segment.p1.x, segment.p1.y);
+		}
+		
+		g.endFill();
+	}
+	
+	
+	// generic draw function for points
+	public function drawPoints(points:Array<Point>, color:Int, ?fillColor:Int = null) {
+		g.lineStyle(THICKNESS, color, ALPHA);
+		if (fillColor != null) g.beginFill(fillColor, FILL_ALPHA);
+		else g.beginFill(0, 0);
+		
+		for (p in points) {
+			if (p == points[0]) g.moveTo(p.x, p.y);
+			else g.lineTo(p.x, p.y);
+		}
+		
+		g.endFill();
+	}
 	
 	public function getTextField(text:String = "", x:Float, y:Float):TextField
 	{
@@ -241,6 +324,8 @@ class Test extends Sprite {
 			case Keyboard.NUMBER_4: showTriangles = !showTriangles;
 			case Keyboard.NUMBER_5: showHull = !showHull;
 			case Keyboard.NUMBER_6: showTree = !showTree;
+			case Keyboard.NUMBER_7: showOnion = !showOnion;
+			case Keyboard.NUMBER_8: showProximityMap = !showProximityMap;
 			
 			// POINTS
 			case Keyboard.NUMPAD_ADD, 43 /* or plus next to enter */:
@@ -266,6 +351,38 @@ class Test extends Sprite {
 		#else
 			Sys.exit(1);
 		#end
+		}
+	}
+	
+	public function onMouseDown(e:MouseEvent):Void 
+	{
+		isMouseDown = true;
+	}
+	
+	public function onMouseUp(e:MouseEvent):Void 
+	{
+		isMouseDown = false;
+		selectedRegion = null;
+		render();
+	}
+	
+	public function onMouseMove(e:MouseEvent):Void 
+	{
+		mousePos.setTo(e.stageX, e.stageY);
+	}
+	
+	public function onEnterFrame(e:Event):Void {
+		var mousePosChanged = !(mousePos.x == prevMousePos.x && mousePos.y == prevMousePos.y);
+		
+		if (isMouseDown && mousePos.x > 0 && mousePos.x < BOUNDS.width && mousePos.y > 0 && mousePos.y < BOUNDS.height) {
+			var p = voronoi.nearestSitePoint(proxymityMap, Std.int(mousePos.x), Std.int(mousePos.y));
+			if (p != null) {
+				points[points.indexOf(p)].setTo(mousePos.x, mousePos.y);
+				if (mousePosChanged) update();
+				selectedRegion = voronoi.region(p);
+				render();
+			}
+			prevMousePos.setTo(mousePos.x, mousePos.y);
 		}
 	}
 	
