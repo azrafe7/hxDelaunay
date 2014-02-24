@@ -7,8 +7,8 @@ import flash.geom.Point;
 
 class EdgeList implements IDisposable {
 	
-	private var _deltax:Float;
-	private var _xmin:Float;
+	private var _deltax:Float = 0;
+	private var _xmin:Float = 0;
 	
 	private var _hashsize:Int;
 	private var _hash:Array<Halfedge>;

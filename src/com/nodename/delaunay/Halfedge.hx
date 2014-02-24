@@ -30,7 +30,7 @@ class Halfedge {
 	public var vertex:Vertex;
 	
 	// the vertex's y-coordinate in the transformed Voronoi space V*
-	public var ystar:Float;
+	public var ystar:Float = 0;
 
 	// Should be private
 	public function new(edge:Edge = null, lr:LR = null)

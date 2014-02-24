@@ -10,8 +10,8 @@ class HalfedgePriorityQueue // also known as heap
 	private var _minBucket:Int;
 	private var _hashsize:Int;
 	
-	private var _ymin:Float;
-	private var _deltay:Float;
+	private var _ymin:Float = 0;
+	private var _deltay:Float = 0;
 	
 	public function new(ymin:Float, deltay:Float, sqrt_nsites:Int)
 	{

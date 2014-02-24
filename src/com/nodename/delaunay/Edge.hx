@@ -21,7 +21,9 @@ class Edge
 {
 	private static var _pool:Array<Edge> = new Array<Edge>();
 
-	public static var DELETED = new Edge();
+	private static var _nedges:Int = 0;
+	
+	public static var DELETED:Edge = new Edge();
 	
 	/**
 	 * This is the only way to create a new Edge 
@@ -126,13 +128,11 @@ class Edge
 		return new LineSegment(leftSite.coord, rightSite.coord);
 	}
 	
-	private static var _nedges:Int = 0;
-	
 	
 	// the equation of the edge: ax + by = c
-	public var a:Float;
-	public var b:Float;
-	public var c:Float;
+	public var a:Float = 0;
+	public var b:Float = 0;
+	public var c:Float = 0;
 	
 	// the two Voronoi vertices that the edge connects
 	//		(if one of them is null, the edge extends to infinity)
@@ -218,7 +218,7 @@ class Edge
 		return (leftRight == LR.LEFT) ? leftSite : rightSite;
 	}
 	
-	public var _edgeIndex:Int;
+	public var _edgeIndex:Int = 0;
 	
 	public function dispose():Void {
 		if (_delaunayLineBmp != null)

@@ -76,7 +76,7 @@ class Site implements ICoord
 	}
 	
 	public var color:Int;
-	public var weight:Float;
+	public var weight:Float = 0;
 	
 	private var _siteIndex:Int;
 	
