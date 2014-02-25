@@ -4,7 +4,7 @@ hxDelaunay
 Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) (itself a port of the excellent [nodename/as3delaunay](https://github.com/nodename/as3delaunay)).
 
 [![click for flash demo](screenshot.png)](https://dl.dropboxusercontent.com/u/32864004/dev/FPDemo/hxDelaunayTest.swf)
-(click the image above to try the flash demo - if you have problems and you're on Chrome, please try [disabling the Flash Pepper plugin](http://nusofthq.com/blog/how-to-disable-the-chrome-pepper-flash-plugin/))
+(click the image above to try the [flash demo](https://dl.dropboxusercontent.com/u/32864004/dev/FPDemo/hxDelaunayTest.swf) - if you have problems and you're on Chrome, please try [disabling the Flash Pepper plugin](http://nusofthq.com/blog/how-to-disable-the-chrome-pepper-flash-plugin/))
 
 ### Changes: ###
 
