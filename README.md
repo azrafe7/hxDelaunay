@@ -3,7 +3,8 @@ hxDelaunay
 
 Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) (itself a port of the excellent [nodename/as3delaunay](https://github.com/nodename/as3delaunay)).
 
-![](screenshot.png)
+[![click for flash demo](screenshot.png)](https://dl.dropboxusercontent.com/u/32864004/dev/FPDemo/hxDelaunayTest.swf)
+(click image above to try the flash demo)
 
 Changes:
 

@@ -161,8 +161,8 @@ class Test extends Sprite {
 			g.endFill();
 		}
 		if (showTriangles) drawTriangles();
-		if (showTree) drawTree();
 		if (showOnion) drawOnion();
+		if (showTree) drawTree();
 		if (showHull) drawHull();
 		if (showPoints) drawSiteCoords();
 		if (selectedRegion != null) drawPoints(selectedRegion, SELECTED_COLOR);
