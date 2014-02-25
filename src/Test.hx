@@ -47,10 +47,12 @@ class Test extends Sprite {
 	private var TREE_COLOR:Int = 0xF0C020;
 	private var ONION_COLOR:Int = 0x10A0FF;
 	private var SELECTED_COLOR:Int = 0x8020F0;
+	private var CENTROID_COLOR:Int = 0x111111;
 	
 	private var THICKNESS:Float = 1.5;
 	private var ALPHA:Float = 1.;
 	private var FILL_ALPHA:Float = 1.;
+	private var CENTROID_ALPHA:Float = .5;
 
 	private var TEXT_COLOR:Int = 0xFFFFFFFF;
 	private var TEXT_FONT:String = "_typewriter";
@@ -62,6 +64,7 @@ class Test extends Sprite {
 	private var voronoi:Voronoi;
 	private var nPoints:Int = 25;
 	private var points:Array<Point>;
+	private var centroids:Array<Point>;
 	private var regions:Array<Array<Point>>;
 	private var sortedRegions:Array<Array<Point>>;
 	private var fillColors:Array<Int>;
@@ -85,6 +88,7 @@ class Test extends Sprite {
 	private var showTree:Bool = false;
 	private var showOnion:Bool = false;
 	private var showProximityMap:Bool = false;
+	private var relax:Bool = false;
 	
 	private var text:TextField;
 	
@@ -101,6 +105,7 @@ class Test extends Sprite {
 		" 6  spanning tree : |TREE|\n" +
 		" 7  onion         : |ONION|\n" +
 		" 8  proximityMap  : |PROXIMITY|\n" +
+		" X  relax         : |RELAX|\n" +
 		"\n\n" +
 		"        POINTS: (|NPOINTS|)\n\n" +
 		" +  add\n" +
@@ -123,6 +128,7 @@ class Test extends Sprite {
 		fillColors = [for (i in 0...10) colorLerp(MIN_FILL_COLOR, MAX_FILL_COLOR, i / 10)];
 		
 		// first random set of points
+		centroids = new Array<Point>();
 		points = new Array<Point>();
 		for (i in 0...nPoints) points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
 
@@ -154,18 +160,19 @@ class Test extends Sprite {
 	public function render():Void {
 		g.clear();
 		
-		if (showRegions) drawRegions();
+		if (showRegions || fillRegions) drawRegions();
 		if (showProximityMap) {
 			g.beginBitmapFill(proxymityMap);
 			g.drawRect(0, 0, BOUNDS.width, BOUNDS.height);
 			g.endFill();
 		}
 		if (showTriangles) drawTriangles();
-		if (showOnion) drawOnion();
 		if (showTree) drawTree();
+		if (showOnion) drawOnion();
 		if (showHull) drawHull();
 		if (showPoints) drawSiteCoords();
 		if (selectedRegion != null) drawPoints(selectedRegion, SELECTED_COLOR);
+		if (relax && showPoints) drawCentroids();
 		
 		text.text = TEXT
 			.replace("|POINTS|", bool2OnOff(showPoints))
@@ -176,6 +183,7 @@ class Test extends Sprite {
 			.replace("|TREE|", bool2OnOff(showTree))
 			.replace("|ONION|", bool2OnOff(showOnion))
 			.replace("|PROXIMITY|", bool2OnOff(showProximityMap))
+			.replace("|RELAX|", bool2OnOff(relax))
 			.replace("|NPOINTS|", Std.string(nPoints));
 			
 	}
@@ -234,13 +242,23 @@ class Test extends Sprite {
 		}
 	}
 
+	public function drawCentroids():Void 
+	{
+		for (c in centroids) {
+			c.x = Math.round(c.x); c.y = Math.round(c.y);
+			g.lineStyle(THICKNESS, CENTROID_COLOR, CENTROID_ALPHA);
+			g.moveTo(c.x - 2, c.y); g.lineTo(c.x + 2, c.y);
+			g.moveTo(c.x, c.y - 2); g.lineTo(c.x, c.y + 2);
+		}
+	}
+
 	public function drawRegions():Void 
 	{
 		var fillIdx = -1;
 		for (region in regions) {
-			if (fillRegions) fillIdx = (fillIdx + 1) % fillColors.length;
+			fillIdx = (fillIdx + 1) % fillColors.length;
 			
-			drawPoints(region, REGION_COLOR, fillRegions ? fillColors[fillIdx] : null);
+			drawPoints(region, fillRegions && !showRegions ? fillColors[fillIdx] : REGION_COLOR, fillRegions ? fillColors[fillIdx] : null);
 		}
 	}
 	
@@ -297,6 +315,35 @@ class Test extends Sprite {
 		g.endFill();
 	}
 	
+	public function getCentroid(region:Array<Point>):Point 
+	{
+		var c = new Point();
+		var len = region.length;
+		for (i in 0...len) {
+			var p0 = region[i];
+			var p1 = region[(i + 1) % len];
+			var m = p0.x * p1.y - p1.x * p0.y;
+			c.x += (p0.x + p1.x) * m;
+			c.y += (p0.y + p1.y) * m;
+		}
+		var area = getArea(region);
+		c.x /= 6 * area;
+		c.y /= 6 * area;
+		return c;
+	}
+		
+	public function getArea(region:Array<Point>):Float 
+	{
+		var area = 0.0;
+		var len = region.length;
+		for (i in 0...len) {
+			var p0 = region[i];
+			var p1 = region[(i + 1) % len];
+			area += p0.x * p1.y - p1.x * p0.y;
+		}
+		return area = .5 * area;
+	}
+		
 	public function getTextField(text:String = "", x:Float, y:Float):TextField
 	{
 		var tf:TextField = new TextField();
@@ -341,6 +388,7 @@ class Test extends Sprite {
 			case Keyboard.R:
 				for (p in points) p.setTo(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height);
 				update();
+			case Keyboard.X: relax = !relax;
 		}
 
 		render();
@@ -373,6 +421,24 @@ class Test extends Sprite {
 	
 	public function onEnterFrame(e:Event):Void {
 		var mousePosChanged = !(mousePos.x == prevMousePos.x && mousePos.y == prevMousePos.y);
+		
+		if (relax) {
+			centroids = [];
+			for (p in points) {
+				var r = voronoi.region(p);
+				var c = getCentroid(r);
+				centroids.push(c);
+				if ((c.x - p.x) * (c.x - p.x) + (c.y - p.y) * (c.y - p.y) > 0.05) {	// slow down things a bit
+					c = c.subtract(p);
+					c.normalize(.5);
+					p.x += c.x;	p.y += c.y;
+				} else {
+					p.x = c.x; p.y = p.y;
+				}
+			}
+			update();
+			render();
+		}
 		
 		if (isMouseDown && mousePos.x > 0 && mousePos.x < BOUNDS.width && mousePos.y > 0 && mousePos.y < BOUNDS.height) {
 			var p = voronoi.nearestSitePoint(proxymityMap, Std.int(mousePos.x), Std.int(mousePos.y));
