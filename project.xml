@@ -17,5 +17,5 @@
 	<assets path="src" include="*.png" />
 
 	<!-- advanced telemetry for use with Scout -->
-	<haxeflag name="-D advanced-telemetry" if="flash" />
+	<!--<haxeflag name="-D advanced-telemetry" if="flash" />-->
 </project>
