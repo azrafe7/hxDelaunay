@@ -23,6 +23,7 @@ import flash.text.TextFieldAutoSize;
 import flash.text.TextFormat;
 import flash.text.TextFormatAlign;
 import flash.ui.Keyboard;
+import haxe.Timer;
 import openfl.Assets;
 import openfl.display.FPS;
 
@@ -48,10 +49,12 @@ class Test extends Sprite {
 	private var ONION_COLOR:Int = 0x10A0FF;
 	private var SELECTED_COLOR:Int = 0x8020F0;
 	private var CENTROID_COLOR:Int = 0x111111;
+	private var MONALISA:String = "src/mona-lisa.png";
 	
 	private var THICKNESS:Float = 1.5;
 	private var ALPHA:Float = 1.;
 	private var FILL_ALPHA:Float = 1.;
+	private var SAMPLE_FILL_ALPHA:Float = .8;
 	private var CENTROID_ALPHA:Float = .5;
 
 	private var TEXT_COLOR:Int = 0xFFFFFFFF;
@@ -65,6 +68,7 @@ class Test extends Sprite {
 	private var nPoints:Int = 25;
 	private var points:Array<Point>;
 	private var centroids:Array<Point>;
+	private var directions:Array<Point>;
 	private var regions:Array<Array<Point>>;
 	private var sortedRegions:Array<Array<Point>>;
 	private var fillColors:Array<Int>;
@@ -75,6 +79,8 @@ class Test extends Sprite {
 	private var proxymitySprite:Sprite;
 	private var proxymityMap:BitmapData;
 	private var selectedRegion:Array<Point>;
+	private var monaListBMD:BitmapData;
+	private var monaLisaBitmap:Bitmap;
 	
 	private var isMouseDown:Bool = false;
 	private var prevMousePos:Point = new Point();
@@ -88,13 +94,19 @@ class Test extends Sprite {
 	private var showTree:Bool = false;
 	private var showOnion:Bool = false;
 	private var showProximityMap:Bool = false;
+	
 	private var relax:Bool = false;
+	private var animate:Bool = false;
+	private var sampleImage:Bool = false;
+	
+	private var startTime:Float = 0;
+	private var dt:Float = 0;
 	
 	private var text:TextField;
 	
 	private var TEXT:String =
 		"         hxDelaunay \n" +
-		"    (ported by azrafe7)\n\n\n" +
+		"    (ported by azrafe7)\n\n" +
 		"\n" +
 		"          TOGGLE:\n\n" +
 		" 1  points        : |POINTS|\n" +
@@ -104,37 +116,55 @@ class Test extends Sprite {
 		" 5  convex hull   : |HULL|\n" + 
 		" 6  spanning tree : |TREE|\n" +
 		" 7  onion         : |ONION|\n" +
-		" 8  proximityMap  : |PROXIMITY|\n" +
+		" 8  proximity map : |PROXIMITY|\n" +
+		"\n" +
 		" X  relax         : |RELAX|\n" +
+		" A  animate       : |ANIMATE|\n" +
+		" M  mona lisa     : |MONALISA|\n" +
 		"\n\n" +
 		"        POINTS: (|NPOINTS|)\n\n" +
 		" +  add\n" +
-		" -  remove\n\n" +
+		" -  remove\n" +
+		"\n" +
 		" R  randomize\n" +
 		"\n\n" +
 		"      click & drag to\n" +
-		"     move region point";
+		"     move region point" + 
+		"\n";
 	
 		
 	public function new () {
 		super ();
 
-		g = graphics;
+		var sprite:Sprite = new Sprite();
+		addChild(sprite);
+		g = sprite.graphics;
 		g.lineStyle(THICKNESS, TEXT_COLOR, ALPHA);
 
-		addChild(text = getTextField(TEXT, BOUNDS.width + 10, 20));
+		addChild(text = getTextField(TEXT, BOUNDS.width + 10, 15));
+		
+		// mona lisa
+		monaListBMD = Assets.getBitmapData(MONALISA);
+		monaLisaBitmap = new Bitmap(monaListBMD);
+		addChildAt(monaLisaBitmap, 0);
 		
 		// generate fill colors
-		fillColors = [for (i in 0...10) colorLerp(MIN_FILL_COLOR, MAX_FILL_COLOR, i / 10)];
+		var MAX_COLORS = 10;
+		fillColors = [for (i in 0...MAX_COLORS) colorLerp(MIN_FILL_COLOR, MAX_FILL_COLOR, i / MAX_COLORS)];
+		centroids = new Array<Point>();
+		directions = new Array<Point>();
 		
 		// first random set of points
-		centroids = new Array<Point>();
 		points = new Array<Point>();
-		for (i in 0...nPoints) points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
+		for (i in 0...nPoints) {
+			points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
+		}
 
-		update();	// recalc
-		render();	// draw
+		update();		// recalc
+		render();		// draw
+		updateText();	// info
 		
+		startTime = Timer.stamp();
 		//stage.addChild(new FPS(5, 5, 0xFFFFFF));
 		stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
@@ -147,6 +177,10 @@ class Test extends Sprite {
 	
 	public function update():Void 
 	{
+		if (voronoi != null) {
+			voronoi.dispose();
+			voronoi = null;
+		}
 		voronoi = new Voronoi(points, null, BOUNDS);
 		regions = [for (p in points) voronoi.region(p)];
 		sortedRegions = voronoi.regions();
@@ -157,10 +191,28 @@ class Test extends Sprite {
 		updateProximityMap();
 	}
 	
+	public function updateText():Void 
+	{
+		text.text = TEXT
+			.replace("|POINTS|", bool2OnOff(showPoints))
+			.replace("|REGIONS|", bool2OnOff(showRegions))
+			.replace("|FILL|", bool2OnOff(fillRegions))
+			.replace("|TRIANGLES|", bool2OnOff(showTriangles))
+			.replace("|HULL|", bool2OnOff(showHull))
+			.replace("|TREE|", bool2OnOff(showTree))
+			.replace("|ONION|", bool2OnOff(showOnion))
+			.replace("|PROXIMITY|", bool2OnOff(showProximityMap))
+			.replace("|NPOINTS|", Std.string(nPoints))
+			.replace("|RELAX|", bool2OnOff(relax))
+			.replace("|ANIMATE|", bool2OnOff(animate))
+			.replace("|MONALISA|", bool2OnOff(sampleImage));
+	}
+	
 	public function render():Void {
 		g.clear();
 		
 		if (showRegions || fillRegions) drawRegions();
+		monaLisaBitmap.visible = (sampleImage && (!fillRegions || SAMPLE_FILL_ALPHA < FILL_ALPHA));
 		if (showProximityMap) {
 			g.beginBitmapFill(proxymityMap);
 			g.drawRect(0, 0, BOUNDS.width, BOUNDS.height);
@@ -173,19 +225,6 @@ class Test extends Sprite {
 		if (showPoints) drawSiteCoords();
 		if (selectedRegion != null) drawPoints(selectedRegion, SELECTED_COLOR);
 		if (relax && showPoints) drawCentroids();
-		
-		text.text = TEXT
-			.replace("|POINTS|", bool2OnOff(showPoints))
-			.replace("|REGIONS|", bool2OnOff(showRegions))
-			.replace("|FILL|", bool2OnOff(fillRegions))
-			.replace("|TRIANGLES|", bool2OnOff(showTriangles))
-			.replace("|HULL|", bool2OnOff(showHull))
-			.replace("|TREE|", bool2OnOff(showTree))
-			.replace("|ONION|", bool2OnOff(showOnion))
-			.replace("|PROXIMITY|", bool2OnOff(showProximityMap))
-			.replace("|RELAX|", bool2OnOff(relax))
-			.replace("|NPOINTS|", Std.string(nPoints));
-			
 	}
 	
 	inline function bool2OnOff(v:Bool):String 
@@ -221,11 +260,12 @@ class Test extends Sprite {
 		var points = voronoi.siteCoords();
 		
 		while (points.length > 2) {
-			var v:Voronoi = new Voronoi(points, null, voronoi.getPlotBounds());
+			var v:Voronoi = new Voronoi(points, null, BOUNDS);
 			var peel = v.hullPointsInOrder();
 			for (p in peel) points.remove(p);
 			res.push(peel);
 			v.dispose();
+			v = null;
 		}
 		if (points.length > 0) res.push(points);
 		
@@ -244,7 +284,9 @@ class Test extends Sprite {
 
 	public function drawCentroids():Void 
 	{
-		for (c in centroids) {
+		if (centroids.length < points.length) return;	// wait next frame
+		for (i in 0...points.length) {
+			var c = centroids[i];
 			c.x = Math.round(c.x); c.y = Math.round(c.y);
 			g.lineStyle(THICKNESS, CENTROID_COLOR, CENTROID_ALPHA);
 			g.moveTo(c.x - 2, c.y); g.lineTo(c.x + 2, c.y);
@@ -254,11 +296,20 @@ class Test extends Sprite {
 
 	public function drawRegions():Void 
 	{
-		var fillIdx = -1;
-		for (region in regions) {
-			fillIdx = (fillIdx + 1) % fillColors.length;
-			
-			drawPoints(region, fillRegions && !showRegions ? fillColors[fillIdx] : REGION_COLOR, fillRegions ? fillColors[fillIdx] : null);
+		if (!sampleImage) {
+			var fillIdx = -1;
+			for (region in regions) {
+				fillIdx = (fillIdx + 1) % fillColors.length;
+				var fillColor = fillRegions ? fillColors[fillIdx] : null;
+				
+				drawPoints(region, fillRegions && !showRegions ? fillColors[fillIdx] : REGION_COLOR, fillColor);
+			}
+		} else {
+			for (p in points) {
+				var sampledColor = monaListBMD.getPixel(Std.int(p.x), Std.int(p.y));
+				
+				drawPoints(voronoi.region(p), fillRegions && showRegions ? REGION_COLOR : sampledColor, fillRegions ? sampledColor: null);
+			}
 		}
 	}
 	
@@ -303,8 +354,8 @@ class Test extends Sprite {
 	
 	// generic draw function for points
 	public function drawPoints(points:Array<Point>, color:Int, ?fillColor:Int = null) {
-		g.lineStyle(THICKNESS, color, ALPHA);
-		if (fillColor != null) g.beginFill(fillColor, FILL_ALPHA);
+		g.lineStyle(THICKNESS, color, sampleImage ? SAMPLE_FILL_ALPHA : ALPHA);
+		if (fillColor != null) g.beginFill(fillColor, sampleImage ? SAMPLE_FILL_ALPHA : FILL_ALPHA);
 		else g.beginFill(0, 0);
 		
 		for (p in points) {
@@ -388,9 +439,16 @@ class Test extends Sprite {
 			case Keyboard.R:
 				for (p in points) p.setTo(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height);
 				update();
-			case Keyboard.X: relax = !relax;
+			case Keyboard.X: 
+				relax = !relax;
+				animate = false;
+			case Keyboard.A: 
+				animate = !animate;
+				relax = false;
+			case Keyboard.M: sampleImage = !sampleImage; 
 		}
 
+		updateText();
 		render();
 		
 		if (e.keyCode == 27) {
@@ -420,22 +478,52 @@ class Test extends Sprite {
 	}
 	
 	public function onEnterFrame(e:Event):Void {
+		dt = Timer.stamp() - startTime;
+		startTime = Timer.stamp();
+		
 		var mousePosChanged = !(mousePos.x == prevMousePos.x && mousePos.y == prevMousePos.y);
 		
 		if (relax) {
-			centroids = [];
-			for (p in points) {
+			for (i in 0...points.length) {
+				var p = points[i];
 				var r = voronoi.region(p);
 				var c = getCentroid(r);
-				centroids.push(c);
-				if ((c.x - p.x) * (c.x - p.x) + (c.y - p.y) * (c.y - p.y) > 0.05) {	// slow down things a bit
+				(i == centroids.length) ? centroids.push(c) : centroids[i] = c;
+				
+				var distSquared = euclideanDistanceSquared(c, p);
+				if (distSquared > 4.5) {	// slow down things a bit
 					c = c.subtract(p);
-					c.normalize(.5);
+					c.normalize(.75);
 					p.x += c.x;	p.y += c.y;
 				} else {
-					p.x = c.x; p.y = p.y;
+					p.x = c.x; p.y = c.y;
 				}
 			}
+		}
+		
+		if (animate) {
+			for (i in 0...points.length) {
+				if (i == directions.length) {
+					directions.push(new Point(30 * (Math.random() < .5 ? -1 : 1) * (Math.random() * .8 + .4), 30 * (Math.random() < .5 ? -1 : 1) * (Math.random() * .8 + .4)));
+				}
+				var p = points[i];
+				var d = directions[i];
+				var dx = d.x * dt;
+				var dy = d.y * dt;
+				if (p.x + dx < 0 || p.x + dx > BOUNDS.width) {
+					d.x *= -1;
+					dx *= -1;
+				}
+				if (p.y + dy < 0 || p.y + dy > BOUNDS.height) {
+					d.y *= -1;
+					dy *= -1;
+				}
+				p.x += dx;
+				p.y += dy;
+			}
+		}
+		
+		if (relax || animate) {
 			update();
 			render();
 		}
@@ -450,6 +538,11 @@ class Test extends Sprite {
 			}
 			prevMousePos.setTo(mousePos.x, mousePos.y);
 		}
+	}
+	
+	inline public function euclideanDistanceSquared(p:Point, q:Point):Float 
+	{
+		return (p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y);
 	}
 	
 	public function colorLerp(fromColor:Int, toColor:Int, t:Float = 1):Int

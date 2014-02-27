@@ -67,7 +67,9 @@ class Site implements ICoord
 
 	private static var EPSILON = .005;
 	private static function closeEnough(p0:Point, p1:Point):Bool {
-		return Point.distance(p0, p1) < EPSILON;
+		var dx2 = (p0.x - p1.x) * (p0.x - p1.x);
+		var dy2 = (p0.y - p1.y) * (p0.y - p1.y);
+		return Math.sqrt(dx2 + dy2) < EPSILON;
 	}
 	public var coord(get, null) : Point;
 	private var _coord:Point;
@@ -409,7 +411,9 @@ class Site implements ICoord
 	
 	inline public function dist(p:ICoord)
 	{
-		return Point.distance(p.coord, this._coord);
+		var dx2 = (p.coord.x - this._coord.x) * (p.coord.x - this._coord.x);
+		var dy2 = (p.coord.y - this._coord.y) * (p.coord.y - this._coord.y);
+		return Math.sqrt(dx2 + dy2);
 	}
 
 }
