@@ -1,7 +1,5 @@
 package com.nodename.geom;
 
-import flash.geom.Point;
-
 
 class Polygon {
 	private var _vertices:Array<Point>;

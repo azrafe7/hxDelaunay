@@ -1,8 +1,7 @@
 package com.nodename.delaunay;
 
 import com.nodename.delaunay.IDisposable;
-
-import flash.geom.Point;
+import com.nodename.geom.Point;
 
 
 class EdgeList implements IDisposable {
@@ -12,31 +11,30 @@ class EdgeList implements IDisposable {
 	
 	private var _hashsize:Int;
 	private var _hash:Array<Halfedge>;
-	private var _leftEnd:Halfedge;
+
 	public var leftEnd(get, null):Halfedge;
-	
-	inline public function get_leftEnd():Halfedge {
-		return _leftEnd;
+	inline private function get_leftEnd():Halfedge {
+		return leftEnd;
 	}
-	private var _rightEnd:Halfedge;
+
 	public var rightEnd(get, null):Halfedge;
-	inline public function get_rightEnd():Halfedge {
-		return _rightEnd;
+	inline private function get_rightEnd():Halfedge {
+		return rightEnd;
 	}
 	
 	public function dispose():Void
 	{
-		var halfEdge:Halfedge = _leftEnd;
+		var halfEdge:Halfedge = leftEnd;
 		var prevHe:Halfedge;
-		while (halfEdge != _rightEnd)
+		while (halfEdge != rightEnd)
 		{
 			prevHe = halfEdge;
 			halfEdge = halfEdge.edgeListRightNeighbor;
 			prevHe.dispose();
 		}
-		_leftEnd = null;
-		_rightEnd.dispose();
-		_rightEnd = null;
+		leftEnd = null;
+		rightEnd.dispose();
+		rightEnd = null;
 
 		var i:Int;
 		for (i in 0..._hashsize) {
@@ -54,14 +52,14 @@ class EdgeList implements IDisposable {
 		_hash[_hashsize - 1] = null;
 		
 		// two dummy Halfedges:
-		_leftEnd = Halfedge.createDummy();
-		_rightEnd = Halfedge.createDummy();
-		_leftEnd.edgeListLeftNeighbor = null;
-		_leftEnd.edgeListRightNeighbor = _rightEnd;
-		_rightEnd.edgeListLeftNeighbor = _leftEnd;
-		_rightEnd.edgeListRightNeighbor = null;
-		_hash[0] = _leftEnd;
-		_hash[_hashsize - 1] = _rightEnd;
+		leftEnd = Halfedge.createDummy();
+		rightEnd = Halfedge.createDummy();
+		leftEnd.edgeListLeftNeighbor = null;
+		leftEnd.edgeListRightNeighbor = rightEnd;
+		rightEnd.edgeListLeftNeighbor = leftEnd;
+		rightEnd.edgeListRightNeighbor = null;
+		_hash[0] = leftEnd;
+		_hash[_hashsize - 1] = rightEnd;
 	}
 
 	/**
@@ -151,7 +149,7 @@ class EdgeList implements IDisposable {
 	}
 
 	/* Get entry from hash table, pruning any deleted nodes */
-	inline private function getHash(b:Int):Halfedge {
+	private function getHash(b:Int):Halfedge {
 		var halfEdge:Halfedge = null;
 		
 		if (b >= 0 && b < _hashsize) {

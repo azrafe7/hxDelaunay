@@ -8,9 +8,9 @@ Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) 
 
 ### Changes: ###
 
+ - No external dependencies (demo still needs flash/openfl)
  - Fixes for cpp & neko targets
- - Added interactive OpenFL demo
- - Added crosstarget hitTest support (for `keepOutMask`)
+ - Added interactive openfl demo
  - Ported to Haxe 3.1 (flash) 
 
 ### Features: ###
@@ -21,5 +21,4 @@ Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) 
  - [Minimum spanning tree](http://en.wikipedia.org/wiki/Euclidean_minimum_spanning_tree)
  - [Onion](http://cgm.cs.mcgill.ca/~orm/ontri.html)
 
-See original authors links for details and licensing.
-
+See original authors links for details and licensing (MIT).

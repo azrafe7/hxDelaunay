@@ -2,8 +2,8 @@ package com.nodename.delaunay;
 
 import com.nodename.geom.Polygon;
 import com.nodename.geom.Winding;
-import flash.geom.Point;
-import flash.geom.Rectangle;
+import com.nodename.geom.Point;
+import com.nodename.geom.Rectangle;
 
 using com.nodename.delaunay.ArrayHelper;
 
@@ -35,7 +35,7 @@ class Site implements ICoord
 	 * 
 	 */
 	
-	inline private static function compare(s1:Site, s2:Site):Int {
+	private static function compare(s1:Site, s2:Site):Int {
 		var returnValue:Int = Voronoi.compareByYThenX(s1, s2);
 		
 		// swap _siteIndex values if necessary to match new ordering:
@@ -71,10 +71,10 @@ class Site implements ICoord
 		var dy2 = (p0.y - p1.y) * (p0.y - p1.y);
 		return Math.sqrt(dx2 + dy2) < EPSILON;
 	}
+	
 	public var coord(get, null) : Point;
-	private var _coord:Point;
-	inline public function get_coord():Point {
-		return _coord;
+	inline private function get_coord():Point {
+		return coord;
 	}
 	
 	public var color:Int;
@@ -83,11 +83,10 @@ class Site implements ICoord
 	private var _siteIndex:Int;
 	
 	// the edges that define this Site's Voronoi region:
-	private var _edges:Array<Edge>;
 	public var edges(get, null):Array<Edge>;
-	inline function get_edges():Array<Edge>
+	inline private function get_edges():Array<Edge>
 	{
-		return _edges;
+		return edges;
 	}
 	// which end of each edge hooks up with the previous edge in _edges:
 	private var _edgeOrientations:Array<LR>;
@@ -101,11 +100,11 @@ class Site implements ICoord
 	
 	private function init(p:Point, index:Int, weight:Float, color:Int):Site
 	{
-		_coord = p;
+		coord = p;
 		_siteIndex = index;
 		this.weight = weight;
 		this.color = color;
-		_edges = new Array<Edge>();
+		edges = new Array<Edge>();
 		_region = null;
 		return this;
 	}
@@ -118,22 +117,22 @@ class Site implements ICoord
 	private function move(p:Point):Void
 	{
 		clear();
-		_coord = p;
+		coord = p;
 	}
 	
 	public function dispose():Void
 	{
-		_coord = null;
+		coord = null;
 		clear();
 		_pool.push(this);
 	}
 	
 	private function clear():Void
 	{
-		if (_edges != null)
+		if (edges != null)
 		{
-			_edges.clear();
-			_edges = null;
+			edges.clear();
+			edges = null;
 		}
 		if (_edgeOrientations != null)
 		{
@@ -147,20 +146,21 @@ class Site implements ICoord
 		}
 	}
 	
-	public inline function addEdge(edge:Edge):Void
+	inline public function addEdge(edge:Edge):Void
 	{
-		_edges.push(edge);
+		edges.push(edge);
 	}
+	
 	// TODO: Can be optimized.
 	public function nearestEdge():Edge
 	{
-		_edges.sort(Edge.compareSitesDistances);
-		return _edges[0];
+		edges.sort(Edge.compareSitesDistances);
+		return edges[0];
 	}
 	
 	public function neighborSites():Array<Site>
 	{
-		if (_edges == null || _edges.length == 0)
+		if (edges == null || edges.length == 0)
 		{
 			return new Array<Site>();
 		}
@@ -169,7 +169,7 @@ class Site implements ICoord
 			reorderEdges();
 		}
 		var list = new Array<Site>();
-		for (edge in _edges)
+		for (edge in edges)
 		{
 			list.push(neighborSite(edge));
 		}
@@ -190,7 +190,7 @@ class Site implements ICoord
 	}
 	
 	public function region(clippingBounds:Rectangle):Array<Point> {
-		if (_edges == null || _edges.length == 0)
+		if (edges == null || edges.length == 0)
 		{
 			return new Array<Point>();
 		}
@@ -208,10 +208,10 @@ class Site implements ICoord
 	
 	private function reorderEdges():Void
 	{
-		//trace("_edges:", _edges);
-		var reorderer = new EdgeReorderer(_edges, EdgeReorderer.edgeToLeftVertex, EdgeReorderer.edgeToRightVertex);
-		_edges = reorderer.edges;
-		//trace("reordered:", _edges);
+		//trace("edges:", edges);
+		var reorderer = new EdgeReorderer(edges, EdgeReorderer.edgeToLeftVertex, EdgeReorderer.edgeToRightVertex);
+		edges = reorderer.edges;
+		//trace("reordered:", edges);
 		_edgeOrientations = reorderer.edgeOrientations;
 		reorderer.dispose();
 	}
@@ -219,10 +219,10 @@ class Site implements ICoord
 	private function clipToBounds(bounds:Rectangle):Array<Point>
 	{
 		var points:Array<Point> = new Array<Point>();
-		var n:Int = _edges.length;
+		var n:Int = edges.length;
 		var i:Int = 0;
 		var edge:Edge;
-		while (i < n && (_edges[i].visible == false))
+		while (i < n && (edges[i].visible == false))
 		{
 			++i;
 		}
@@ -232,14 +232,14 @@ class Site implements ICoord
 			// no edges visible
 			return new Array<Point>();
 		}
-		edge = _edges[i];
+		edge = edges[i];
 		var orientation:LR = _edgeOrientations[i];
 		points.push(edge.clippedEnds(orientation));
 		points.push(edge.clippedEnds(LR.other(orientation)));
 		
 		for (j in (i + 1)...n)
 		{
-			edge = _edges[j];
+			edge = edges[j];
 			if (edge.visible == false)
 			{
 				continue;
@@ -255,7 +255,7 @@ class Site implements ICoord
 	private function connect(points:Array<Point>, j:Int, bounds:Rectangle, closingUp:Bool = false):Void
 	{
 		var rightPoint = points[points.length - 1];
-		var newEdge = _edges[j];
+		var newEdge = edges[j];
 		var newOrientation:LR = _edgeOrientations[j];
 		// the point that  must be connected to rightPoint:
 		var newPoint = newEdge.clippedEnds(newOrientation);
@@ -399,27 +399,24 @@ class Site implements ICoord
 	}
 	
 	public var x(get, null):Float;
-	
-	inline public function get_x() {
-		return _coord.x;
+	inline private function get_x() {
+		return coord.x;
 	}
 
 	public var y(get, null):Float;
-	inline function get_y() {
-		return _coord.y;
+	inline private function get_y() {
+		return coord.y;
 	}
 	
-	inline public function dist(p:ICoord)
+	public function dist(p:ICoord)
 	{
-		var dx2 = (p.coord.x - this._coord.x) * (p.coord.x - this._coord.x);
-		var dy2 = (p.coord.y - this._coord.y) * (p.coord.y - this._coord.y);
+		var dx2 = (p.coord.x - this.coord.x) * (p.coord.x - this.coord.x);
+		var dy2 = (p.coord.y - this.coord.y) * (p.coord.y - this.coord.y);
 		return Math.sqrt(dx2 + dy2);
 	}
 
 }
 
-
-class PrivateConstructorEnforcer {}
 
 @: final class BoundsCheck
 {

@@ -1,6 +1,6 @@
 package com.nodename.delaunay;
 
-import flash.geom.Point;
+import com.nodename.geom.Point;
 
 
 class Vertex implements ICoord
@@ -27,16 +27,15 @@ class Vertex implements ICoord
 
 	private static var _nvertices:Int = 0;
 	
-	private var _coord:Point;
 	public var coord(get, null):Point;
-	inline public function get_coord():Point {
-		return _coord;
+	inline private function get_coord():Point {
+		return coord;
 	}
-	private var _vertexIndex:Int;
+
 	public var vertexIndex(get, null):Int;
-	public function get_vertexIndex():Int
+	inline private function get_vertexIndex():Int
 	{
-		return _vertexIndex;
+		return vertexIndex;
 	}
 
 	// Should be private
@@ -44,23 +43,23 @@ class Vertex implements ICoord
 		init(x, y);
 	}
 	
-	inline private function init(x:Float, y:Float):Vertex {
-		_coord = new Point(x, y);
+	private function init(x:Float, y:Float):Vertex {
+		coord = new Point(x, y);
 		return this;
 	}
 	
-	inline public function dispose():Void {
-		_coord = null;
+	public function dispose():Void {
+		coord = null;
 		_pool.push(this);
 	}
 	
 	inline public function setIndex():Void {
-		_vertexIndex = _nvertices++;
+		vertexIndex = _nvertices++;
 	}
 	
 	public function toString():String
 	{
-		return "Vertex (" + _vertexIndex + ")";
+		return "Vertex (" + vertexIndex + ")";
 	}
 
 	/**
@@ -115,11 +114,11 @@ class Vertex implements ICoord
 	}
 	public var x(get, null):Float;
 	public var y(get, null):Float;
-	inline public function get_x():Float {
-		return _coord.x;
+	inline private function get_x():Float {
+		return coord.x;
 	}
-	inline public function get_y():Float {
-		return _coord.y;
+	inline private function get_y():Float {
+		return coord.y;
 	}
 	
 }

@@ -1,6 +1,5 @@
 package com.nodename.geom;
 
-import flash.geom.Point;
 
 class Circle {
 	public var center:Point;

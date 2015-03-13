@@ -1,18 +1,16 @@
 package com.nodename.delaunay;
 
 
-
 class EdgeReorderer {
-	private var _edges:Array<Edge>;
-	private var _edgeOrientations:Array<LR>;
-	public var edges(get, null):Array<Edge>;
-	inline public function get_edges():Array<Edge> {
-		return _edges;
-	}
-	public var edgeOrientations(get, null):Array<LR>;
 	
-	inline public function get_edgeOrientations():Array<LR> {
-		return _edgeOrientations;
+	public var edges(get, null):Array<Edge>;
+	inline private function get_edges():Array<Edge> {
+		return edges;
+	}
+	
+	public var edgeOrientations(get, null):Array<LR>;
+	inline private function get_edgeOrientations():Array<LR> {
+		return edgeOrientations;
 	}
 	
 	inline public static function edgeToLeftVertex(ed : Edge) : ICoord { return ed.leftVertex;}
@@ -20,20 +18,20 @@ class EdgeReorderer {
 	inline public static function edgeToRightVertex(ed : Edge) : ICoord { return ed.rightVertex;}
 	inline public static function edgeToRightSite(ed : Edge) : ICoord { return ed.rightSite;}
 	
-	// TODO: use a adt to represent criterion.
+	// TODO: use a ADT to represent criterion.
 	public function new(origEdges:Array<Edge>, leftCoord: Edge -> ICoord, rightCoord: Edge -> ICoord) {
-		_edges = new Array<Edge>();
-		_edgeOrientations = new Array<LR>();
+		edges = new Array<Edge>();
+		edgeOrientations = new Array<LR>();
 		if (origEdges.length > 0)
 		{
-			_edges = reorderEdges(origEdges, leftCoord, rightCoord);
+			edges = reorderEdges(origEdges, leftCoord, rightCoord);
 		}
 	}
 	
 	public function dispose():Void
 	{
-		_edges = null;
-		_edgeOrientations = null;
+		edges = null;
+		edgeOrientations = null;
 	}
 
 	private function reorderEdges(origEdges:Array<Edge>, leftCoord: Edge -> ICoord, rightCoord: Edge -> ICoord):Array<Edge> {
@@ -53,7 +51,7 @@ class EdgeReorderer {
 		i = 0;
 		edge = origEdges[i];
 		newEdges.push(edge);
-		_edgeOrientations.push(LR.LEFT);
+		edgeOrientations.push(LR.LEFT);
 		var firstPoint:ICoord = leftCoord(edge);
 		var lastPoint:ICoord = rightCoord(edge);
 		
@@ -84,28 +82,28 @@ class EdgeReorderer {
 				if (leftPoint == lastPoint)
 				{
 					lastPoint = rightPoint;
-					_edgeOrientations.push(LR.LEFT);
+					edgeOrientations.push(LR.LEFT);
 					newEdges.push(edge);
 					done[i] = true;
 				}
 				else if (rightPoint == firstPoint)
 				{
 					firstPoint = leftPoint;
-					_edgeOrientations.unshift(LR.LEFT);
+					edgeOrientations.unshift(LR.LEFT);
 					newEdges.unshift(edge);
 					done[i] = true;
 				}
 				else if (leftPoint == firstPoint)
 				{
 					firstPoint = rightPoint;
-					_edgeOrientations.unshift(LR.RIGHT);
+					edgeOrientations.unshift(LR.RIGHT);
 					newEdges.unshift(edge);
 					done[i] = true;
 				}
 				else if (rightPoint == lastPoint)
 				{
 					lastPoint = leftPoint;
-					_edgeOrientations.push(LR.RIGHT);
+					edgeOrientations.push(LR.RIGHT);
 					newEdges.push(edge);
 					done[i] = true;
 				}

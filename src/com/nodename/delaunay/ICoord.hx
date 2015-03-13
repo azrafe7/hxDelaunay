@@ -1,8 +1,7 @@
 package com.nodename.delaunay;
 
-import flash.geom.Point;
+import com.nodename.geom.Point;
 
 interface ICoord {
-	public var coord(get, null):Point;
-	public function get_coord():Point;
+	var coord(get, null):Point;
 }

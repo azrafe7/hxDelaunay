@@ -1,6 +1,6 @@
 package com.nodename.delaunay;
 
-import flash.geom.Point;
+import com.nodename.geom.Point;
 
 
 class Halfedge {
@@ -54,12 +54,12 @@ class Halfedge {
 	
 	public function dispose():Void
 	{
-		if (edgeListLeftNeighbor!=null || edgeListRightNeighbor!=null)
+		if (edgeListLeftNeighbor != null || edgeListRightNeighbor != null)
 		{
 			// still in EdgeList
 			return;
 		}
-		if (nextInPriorityQueue!=null)
+		if (nextInPriorityQueue != null)
 		{
 			// still in PriorityQueue
 			return;

@@ -1,7 +1,6 @@
 package com.nodename.delaunay;
 
 
-
 /**
  * ...
  * @author sledorze

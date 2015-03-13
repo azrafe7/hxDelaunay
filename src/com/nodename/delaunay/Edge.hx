@@ -1,13 +1,8 @@
 package com.nodename.delaunay;
 
 import com.nodename.geom.LineSegment;
-import flash.display.BitmapData;
-import flash.display.CapsStyle;
-import flash.display.Graphics;
-import flash.display.LineScaleMode;
-import flash.display.Sprite;
-import flash.geom.Point;
-import flash.geom.Rectangle;
+import com.nodename.geom.Point;
+import com.nodename.geom.Rectangle;
 
 
 
@@ -56,8 +51,8 @@ class Edge
 		site0.addEdge(edge);
 		site1.addEdge(edge);
 		
-		edge._leftVertex = null;
-		edge._rightVertex = null;
+		edge.leftVertex = null;
+		edge.rightVertex = null;
 		
 		edge.a = a;
 		edge.b = b;
@@ -82,47 +77,6 @@ class Edge
 		return edge;
 	}
 	
-	private static var LINESPRITE:Sprite = new Sprite();
-	private static var GRAPHICS:Graphics = LINESPRITE.graphics;
-	
-	private var _delaunayLineBmp:BitmapData;
-	public var delaunayLineBmp(get, null):BitmapData;
-	
-	public function get_delaunayLineBmp():BitmapData {
-		if (_delaunayLineBmp == null)
-		{
-			_delaunayLineBmp = makeDelaunayLineBmp();
-		}
-		return _delaunayLineBmp;
-	}
-	
-	// making this available to Voronoi; running out of memory in AIR so I cannot cache the bmp
-	public function makeDelaunayLineBmp():BitmapData
-	{
-		var p0:Point = leftSite.coord;
-		var p1:Point = rightSite.coord;
-		
-		GRAPHICS.clear();
-		// clear() resets line style back to undefined!
-		GRAPHICS.lineStyle(0, 0, 1.0, false, LineScaleMode.NONE, CapsStyle.NONE);
-		GRAPHICS.moveTo(p0.x, p0.y);
-		GRAPHICS.lineTo(p1.x, p1.y);
-					
-		var w:Int = Std.int(Math.ceil(Math.max(p0.x, p1.x)));
-		if (w < 1)
-		{
-			w = 1;
-		}
-		var h:Int = Std.int(Math.ceil(Math.max(p0.y, p1.y)));
-		if (h < 1)
-		{
-			h = 1;
-		}
-		var bmp:BitmapData = new BitmapData(w, h, true, 0);
-		bmp.draw(LINESPRITE);
-		return bmp;
-	}
-
 	public function delaunayLine():LineSegment {
 		// draw a line connecting the input Sites for which the edge is a bisector:
 		return new LineSegment(leftSite.coord, rightSite.coord);
@@ -135,37 +89,38 @@ class Edge
 	public var c:Float = 0;
 	
 	// the two Voronoi vertices that the edge connects
-	//		(if one of them is null, the edge extends to infinity)
-	private var _leftVertex:Vertex;
-	public var leftVertex(get, null) : Vertex;
-	inline public function get_leftVertex():Vertex {
-		return _leftVertex;
+	// (if one of them is null, the edge extends to infinity)
+	public var leftVertex(get, null):Vertex = null;
+	inline private function get_leftVertex():Vertex {
+		return leftVertex;
 	}
-	private var _rightVertex:Vertex;
-	public var rightVertex(get, null):Vertex;
-	inline function get_rightVertex():Vertex {
-		return _rightVertex;
+
+	public var rightVertex(get, null):Vertex = null;
+	inline private function get_rightVertex():Vertex {
+		return rightVertex;
 	}
+	 
 	inline public function vertex(leftRight:LR):Vertex {
-		return (leftRight == LR.LEFT) ? _leftVertex : _rightVertex;
+		return (leftRight == LR.LEFT) ? leftVertex : rightVertex;
 	}
+	
 	public function setVertex(leftRight:LR, v:Vertex):Void {
 		if (leftRight == LR.LEFT) {
-			_leftVertex = v;
+			leftVertex = v;
 		} else {
-			_rightVertex = v;
+			rightVertex = v;
 		}
 	}
 	
 	inline public function isPartOfConvexHull():Bool {
-		return (_leftVertex == null || _rightVertex == null);
+		return (leftVertex == null || rightVertex == null);
 	}
 	
 	inline public function sitesDistance():Float {
 		return Point.distance(leftSite.coord, rightSite.coord);
 	}
 	
-	public static function compareSitesDistances_MAX(edge0:Edge, edge1:Edge):Int {
+	static public function compareSitesDistances_MAX(edge0:Edge, edge1:Edge):Int {
 		var length0:Float = edge0.sitesDistance();
 		var length1:Float = edge1.sitesDistance();
 		if (length0 < length1) {
@@ -177,25 +132,17 @@ class Edge
 		}
 	}
 	
-	inline public static function compareSitesDistances(edge0:Edge, edge1:Edge):Int {
-		return - compareSitesDistances_MAX(edge0, edge1);
+	inline static public function compareSitesDistances(edge0:Edge, edge1:Edge):Int {
+		return -compareSitesDistances_MAX(edge0, edge1);
 	}
 	
-	// Once clipVertices() is called, this Dictionary will hold two Points
-	// representing the clipped coordinates of the left and right ends...
-	/*
-	private var _clippedVertices:Dictionary;
-	public var clippedEnds(get, null):Dictionary;
-	inline function get_clippedEnds():Dictionary {
-		return _clippedVertices;
-	}
-	*/
 	private var __leftPoint : Point;
 	private var __rightPoint : Point;
 	
 	public function clippedEnds(or : LR) : Point {
 		return (or == LR.LEFT)?__leftPoint:__rightPoint;
 	}
+	
 	public function setClippedEnds(or : LR, p : Point) : Void {
 		if (or == LR.LEFT)
 			__leftPoint = p;
@@ -206,7 +153,7 @@ class Edge
 	// unless the entire Edge is outside the bounds.
 	// In that case visible will be false:
 	public var visible(get, null): Bool;
-	inline function get_visible():Bool {
+	inline private function get_visible():Bool {
 		return __leftPoint != null && __rightPoint != null; // _clippedVertices != null;
 	}
 	
@@ -221,13 +168,8 @@ class Edge
 	public var _edgeIndex:Int = 0;
 	
 	public function dispose():Void {
-		if (_delaunayLineBmp != null)
-		{
-			_delaunayLineBmp.dispose();
-			_delaunayLineBmp = null;
-		}
-		_leftVertex = null;
-		_rightVertex = null;
+		leftVertex = null;
+		rightVertex = null;
 		setClippedEnds(LR.LEFT, null);
 		setClippedEnds(LR.RIGHT, null);
 		
@@ -261,8 +203,8 @@ class Edge
 	public function toString():String
 	{
 		return "Edge " + _edgeIndex + "; sites " + site(LR.LEFT) + ", " + site(LR.RIGHT)
-				+ "; endVertices " + (_leftVertex!=null ? ""+_leftVertex.vertexIndex : "null") + ", "
-				 + (_rightVertex!=null ? ""+_rightVertex.vertexIndex : "null") + ((leftSite!=null)?""+leftSite:"null") + ((rightSite!=null)?""+rightSite:"null") + "::";
+				+ "; endVertices " + (leftVertex != null ? ""+leftVertex.vertexIndex : "null") + ", "
+				+ (rightVertex != null ? ""+rightVertex.vertexIndex : "null") + ((leftSite != null)?""+leftSite:"null") + ((rightSite != null)?""+rightSite:"null") + "::";
 	}
 
 	/**
@@ -282,13 +224,13 @@ class Edge
 		
 		if (a == 1.0 && b >= 0.0)
 		{
-			vertex0 = _rightVertex;
-			vertex1 = _leftVertex;
+			vertex0 = rightVertex;
+			vertex1 = leftVertex;
 		}
 		else 
 		{
-			vertex0 = _leftVertex;
-			vertex1 = _rightVertex;
+			vertex0 = leftVertex;
+			vertex1 = rightVertex;
 		}
 	
 		if (a == 1.0)
@@ -386,7 +328,7 @@ class Edge
 			}
 		}
 
-		if (vertex0 == _leftVertex)
+		if (vertex0 == leftVertex)
 		{
 			setClippedEnds(LR.LEFT, new Point(x0, y0));
 			setClippedEnds(LR.RIGHT, new Point(x1, y1));

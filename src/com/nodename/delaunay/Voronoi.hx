@@ -15,11 +15,11 @@
 
 package com.nodename.delaunay;
 
+import com.nodename.delaunay.Kruskal.SortType;
 import com.nodename.geom.Circle;
 import com.nodename.geom.LineSegment;
-import flash.display.BitmapData;
-import flash.geom.Point;
-import flash.geom.Rectangle;
+import com.nodename.geom.Point;
+import com.nodename.geom.Rectangle;
 import com.nodename.delaunay.SelectHelper;
 
 using com.nodename.delaunay.ArrayHelper;
@@ -86,7 +86,7 @@ class Voronoi {
 		var length:Int = points.length;
 		for (i in 0 ... length)
 		{
-			addSite(points[i], colors!=null ? colors[i] : 0, i);
+			addSite(points[i], colors != null ? colors[i] : 0, i);
 		}
 	}
 	
@@ -153,9 +153,9 @@ class Voronoi {
 		return SelectHelper.visibleLineSegments(_edges);
 	}
 	
-	public function delaunayTriangulation(keepOutMask:BitmapData = null):Array<LineSegment>
+	public function delaunayTriangulation():Array<LineSegment>
 	{
-		return SelectHelper.delaunayLinesForEdges(SelectHelper.selectNonIntersectingEdges(keepOutMask, _edges));
+		return SelectHelper.delaunayLinesForEdges(_edges);
 	}
 	
 	public function hull():Array<LineSegment>
@@ -199,9 +199,8 @@ class Voronoi {
 		return points;
 	}
 	
-	public function spanningTree(type:String = "minimum", keepOutMask:BitmapData = null):Array<LineSegment>	{
-		var edges = SelectHelper.selectNonIntersectingEdges(keepOutMask, _edges);
-		var segments = SelectHelper.delaunayLinesForEdges(edges);
+	public function spanningTree(type:SortType = null):Array<LineSegment>	{
+		var segments = SelectHelper.delaunayLinesForEdges(_edges);
 		return Kruskal.kruskal(segments, type);
 	}
 
@@ -210,24 +209,24 @@ class Voronoi {
 		return _sites.regions(_plotBounds);
 	}
 	
-	public function siteColors(referenceImage:BitmapData = null):Array<Int>
+	public function siteColors():Array<Int>
 	{
-		return _sites.siteColors(referenceImage);
+		return _sites.siteColors();
 	}
 	
 	/**
 	 * 
-	 * @param proximityMap a BitmapData whose regions are filled with the site index values; see PlanePointsCanvas::fillRegions()
 	 * @param x
 	 * @param y
 	 * @return coordinates of nearest Site to (x, y)
 	 * 
 	 */
-	inline public function nearestSitePoint(proximityMap:BitmapData, x:Int, y:Int):Point {
-		return _sites.nearestSitePoint(proximityMap, x, y);
+	public function nearestSitePoint(x:Int, y:Int):Point
+	{
+		return _sites.nearestSitePoint(x, y);
 	}
 	
-	inline public function siteCoords():Array<Point> {
+	public function siteCoords():Array<Point> {
 		return _sites.siteCoords();
 	}
 
@@ -401,10 +400,11 @@ class Voronoi {
 	}
 	
 
-	public inline static function isInf(s1:Site, s2:Point) : Bool {
+	inline static public function isInf(s1:Site, s2:Point) : Bool {
 		return (s1.y < s2.y) || (s1.y == s2.y && s1.x < s2.x);
 	}
-	public inline static function isInfSite(s1:Site, s2:Site) : Bool {
+	
+	inline static public function isInfSite(s1:Site, s2:Site) : Bool {
 		return (s1.y < s2.y) || (s1.y == s2.y && s1.x < s2.x);
 	}
 	

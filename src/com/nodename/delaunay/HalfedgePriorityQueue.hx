@@ -1,6 +1,6 @@
 package com.nodename.delaunay;
 
-import flash.geom.Point;
+import com.nodename.geom.Point;
 
 
 class HalfedgePriorityQueue // also known as heap

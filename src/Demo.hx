@@ -3,20 +3,16 @@ package;
 
 import com.nodename.delaunay.Voronoi;
 import com.nodename.geom.LineSegment;
+import com.nodename.geom.Point;
+import com.nodename.geom.Rectangle;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
-import flash.display.CapsStyle;
 import flash.display.Graphics;
-import flash.display.LineScaleMode;
 import flash.display.Sprite;
-import flash.display.Stage;
 import flash.events.Event;
 import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.filters.GlowFilter;
-import flash.geom.Point;
-import flash.geom.Rectangle;
-import flash.Lib;
 import flash.system.System;
 import flash.text.TextField;
 import flash.text.TextFieldAutoSize;
@@ -25,17 +21,16 @@ import flash.text.TextFormatAlign;
 import flash.ui.Keyboard;
 import haxe.Timer;
 import openfl.Assets;
-import openfl.display.FPS;
 
 
 using StringTools;
 
 /**
- * hxDelaunay openFL test.
+ * hxDelaunay openFL demo.
  * 
  * @author azrafe7
  */
-class Test extends Sprite {
+class Demo extends Sprite {
 
 	private var g:Graphics;
 
@@ -57,7 +52,7 @@ class Test extends Sprite {
 	private var SAMPLE_FILL_ALPHA:Float = .8;
 	private var CENTROID_ALPHA:Float = .5;
 
-	private var TEXT_COLOR:Int = 0xFFFFFFFF;
+	private var TEXT_COLOR:Int = 0xFFFFFF;
 	private var TEXT_FONT:String = "_typewriter";
 	private var TEXT_SIZE:Float = 12;
 	private var TEXT_OUTLINE:GlowFilter = new GlowFilter(0xFF000000, 1, 2, 2, 6);
@@ -173,8 +168,6 @@ class Test extends Sprite {
 		stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 	}
 
-	
-	
 	public function update():Void 
 	{
 		if (voronoi != null) {
@@ -490,9 +483,9 @@ class Test extends Sprite {
 				var c = getCentroid(r);
 				(i == centroids.length) ? centroids.push(c) : centroids[i] = c;
 				
-				var distSquared = euclideanDistanceSquared(c, p);
+				var distSquared = Point.distanceSquared(c, p);
 				if (distSquared > 4.5) {	// slow down things a bit
-					c = c.subtract(p);
+					c.x -= p.x; c.y -= p.y;
 					c.normalize(.75);
 					p.x += c.x;	p.y += c.y;
 				} else {
@@ -529,7 +522,7 @@ class Test extends Sprite {
 		}
 		
 		if (isMouseDown && mousePos.x > 0 && mousePos.x < BOUNDS.width && mousePos.y > 0 && mousePos.y < BOUNDS.height) {
-			var p = voronoi.nearestSitePoint(proxymityMap, Std.int(mousePos.x), Std.int(mousePos.y));
+			var p = voronoi.nearestSitePoint(Std.int(mousePos.x), Std.int(mousePos.y));
 			if (p != null) {
 				points[points.indexOf(p)].setTo(mousePos.x, mousePos.y);
 				if (mousePosChanged) update();
@@ -538,11 +531,6 @@ class Test extends Sprite {
 			}
 			prevMousePos.setTo(mousePos.x, mousePos.y);
 		}
-	}
-	
-	inline public function euclideanDistanceSquared(p:Point, q:Point):Float 
-	{
-		return (p.x - q.x) * (p.x - q.x) + (p.y - q.y) * (p.y - q.y);
 	}
 	
 	public function colorLerp(fromColor:Int, toColor:Int, t:Float = 1):Int

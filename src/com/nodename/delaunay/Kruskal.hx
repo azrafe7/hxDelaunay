@@ -1,8 +1,7 @@
 package com.nodename.delaunay;
 
 import com.nodename.geom.LineSegment;
-import flash.geom.Point;
-import flash.utils.Dictionary;
+import com.nodename.geom.Point;
 
 
 class Kruskal {
@@ -11,8 +10,10 @@ class Kruskal {
 	 * Skiena: The Algorithm Design Manual, p. 196ff
 	 * Note: the sites are implied: they consist of the end points of the line segments
 	 */
-	public static function kruskal(lineSegments:Array<LineSegment>, type:String = "minimum"):Array<LineSegment>
+	public static function kruskal(lineSegments:Array<LineSegment>, type:SortType = null):Array<LineSegment>
 	{
+		if (type == null) type = SortType.MINIMUM;
+		
 		var nodes = new Map<Point, Node>();
 		var mst:Array<LineSegment> = new Array<LineSegment>();
 		var nodePool:Array<Node> = Node.pool;
@@ -20,9 +21,9 @@ class Kruskal {
 		switch (type) {
 			// note that the compare functions are the reverse of what you'd expect
 			// because (see below) we traverse the lineSegments in reverse order for speed
-			case "maximum":
+			case MAXIMUM:
 				lineSegments.sort(LineSegment.compareLengths);
-			default:
+			case MINIMUM:
 				lineSegments.sort(LineSegment.compareLengths_MAX);
 		}
 		var index = lineSegments.length - 1;
@@ -111,4 +112,9 @@ class Node {
 	public var treeSize:Int;
 	
 	public function new() {}
+}
+
+enum SortType {
+	MINIMUM;
+	MAXIMUM;
 }

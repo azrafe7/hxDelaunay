@@ -2,9 +2,8 @@ package com.nodename.delaunay;
 
 import com.nodename.geom.Circle;
 import com.nodename.delaunay.IDisposable;
-import flash.display.BitmapData;
-import flash.geom.Point;
-import flash.geom.Rectangle;
+import com.nodename.geom.Point;
+import com.nodename.geom.Rectangle;
 
 using com.nodename.delaunay.ArrayHelper;
 
@@ -41,8 +40,7 @@ class SiteList implements IDisposable {
 	}
 	
 	public var length(get, null) : Int;
-	
-	public function get_length():Int {
+	inline private function get_length():Int {
 		return _sites.length;
 	}
 	
@@ -98,12 +96,12 @@ class SiteList implements IDisposable {
 		return new Rectangle(xmin, ymin, xmax - xmin, ymax - ymin);
 	}
 
-	public function siteColors(referenceImage:BitmapData = null):Array<Int>
+	public function siteColors():Array<Int>
 	{
 		var colors = new Array<Int>();
 		for (site in _sites)
 		{
-			colors.push(referenceImage!=null ? referenceImage.getPixel(Std.int(site.x), Std.int(site.y)) : site.color);
+			colors.push(site.color);
 		}
 		return colors;
 	}
@@ -151,20 +149,26 @@ class SiteList implements IDisposable {
 
 	/**
 	 * 
-	 * @param proximityMap a BitmapData whose regions are filled with the site index values; see PlanePointsCanvas::fillRegions()
 	 * @param x
 	 * @param y
 	 * @return coordinates of nearest Site to (x, y)
 	 * 
 	 */
-	public function nearestSitePoint(proximityMap:BitmapData, x:Int, y:Int):Point
+	public function nearestSitePoint(x:Int, y:Int):Point
 	{
-		var index:Int = proximityMap.getPixel(x, y);
-		if (index > _sites.length - 1)
-		{
-			return null;
+		var res = null;
+		var p = new Point(x, y);
+		var minDistSqr = Math.POSITIVE_INFINITY;
+		
+		for (site in _sites) {
+			var q = site.coord;
+			var distSqr = Point.distanceSquared(p, q);
+			if (distSqr < minDistSqr) {
+				minDistSqr = distSqr;
+				res = site;
+			}
 		}
-		return _sites[index].coord;
+		
+		return res != null ? res.coord : null;
 	}
-	
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 	
-	<meta title="Test" package="net.azrafe7.hxDelauney" version="1.0.0" company="azrafe7" />
-	<app main="Test" path="bin" file="Test" />
+	<meta title="Demo" package="lib.azrafe7.hxDelaunay" version="1.0.0" company="azrafe7" />
+	<app main="Demo" path="bin" file="Demo" />
 	
 	<window background="#222222" fps="60" />
 	<window width="700" height="500" unless="mobile" />
