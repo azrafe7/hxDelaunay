@@ -21,7 +21,7 @@ class Site implements ICoord
 			return new Site(p, index, weight, color);
 		}
 	}
-	
+
 	public inline static function sortSites(sites:Array<Site>):Void {
 		sites.sort(Site.compare);
 	}
@@ -30,14 +30,14 @@ class Site implements ICoord
 	 * sort sites on y, then x, coord
 	 * also change each site's _siteIndex to match its new position in the list
 	 * so the _siteIndex can be used to identify the site for nearest-neighbor queries
-	 * 
+	 *
 	 * haha "also" - means more than one responsibility...
-	 * 
+	 *
 	 */
-	
+
 	private static function compare(s1:Site, s2:Site):Int {
 		var returnValue:Int = Voronoi.compareByYThenX(s1, s2);
-		
+
 		// swap _siteIndex values if necessary to match new ordering:
 		var tempIndex:Int;
 		if (returnValue == -1)
@@ -57,12 +57,12 @@ class Site implements ICoord
 				s2._siteIndex = s1._siteIndex;
 				s1._siteIndex = tempIndex;
 			}
-			
+
 		}
-		
+
 		return returnValue;
 	}
-	
+
 
 
 	private static var EPSILON = .005;
@@ -71,17 +71,17 @@ class Site implements ICoord
 		var dy2 = (p0.y - p1.y) * (p0.y - p1.y);
 		return Math.sqrt(dx2 + dy2) < EPSILON;
 	}
-	
+
 	public var coord(get, null) : Point;
 	inline private function get_coord():Point {
 		return coord;
 	}
-	
+
 	public var color:Int;
 	public var weight:Float = 0;
-	
+
 	private var _siteIndex:Int;
-	
+
 	// the edges that define this Site's Voronoi region:
 	public var edges(get, null):Array<Edge>;
 	inline private function get_edges():Array<Edge>
@@ -97,7 +97,7 @@ class Site implements ICoord
 	private function new(p:Point, index:Int, weight:Float, color:Int) {
 		init(p, index, weight, color);
 	}
-	
+
 	private function init(p:Point, index:Int, weight:Float, color:Int):Site
 	{
 		coord = p;
@@ -108,25 +108,25 @@ class Site implements ICoord
 		_region = null;
 		return this;
 	}
-	
+
 	public function toString():String
 	{
 		return "Site " + _siteIndex + ": " + coord;
 	}
-	
+
 	private function move(p:Point):Void
 	{
 		clear();
 		coord = p;
 	}
-	
+
 	public function dispose():Void
 	{
 		coord = null;
 		clear();
 		_pool.push(this);
 	}
-	
+
 	private function clear():Void
 	{
 		if (edges != null)
@@ -145,19 +145,19 @@ class Site implements ICoord
 			_region = null;
 		}
 	}
-	
+
 	inline public function addEdge(edge:Edge):Void
 	{
 		edges.push(edge);
 	}
-	
+
 	// TODO: Can be optimized.
 	public function nearestEdge():Edge
 	{
 		edges.sort(Edge.compareSitesDistances);
 		return edges[0];
 	}
-	
+
 	public function neighborSites():Array<Site>
 	{
 		if (edges == null || edges.length == 0)
@@ -165,7 +165,7 @@ class Site implements ICoord
 			return new Array<Site>();
 		}
 		if (_edgeOrientations == null)
-		{ 
+		{
 			reorderEdges();
 		}
 		var list = new Array<Site>();
@@ -175,7 +175,7 @@ class Site implements ICoord
 		}
 		return list;
 	}
-		
+
 	private function neighborSite(edge:Edge):Site
 	{
 		if (this == edge.leftSite)
@@ -188,7 +188,7 @@ class Site implements ICoord
 		}
 		return null;
 	}
-	
+
 	public function region(clippingBounds:Rectangle):Array<Point> {
 		if (edges == null || edges.length == 0)
 		{
@@ -205,7 +205,7 @@ class Site implements ICoord
 		}
 		return _region;
 	}
-	
+
 	private function reorderEdges():Void
 	{
 		//trace("edges:", edges);
@@ -215,7 +215,7 @@ class Site implements ICoord
 		_edgeOrientations = reorderer.edgeOrientations;
 		reorderer.dispose();
 	}
-	
+
 	private function clipToBounds(bounds:Rectangle):Array<Point>
 	{
 		var points:Array<Point> = new Array<Point>();
@@ -226,7 +226,7 @@ class Site implements ICoord
 		{
 			++i;
 		}
-		
+
 		if (i == n)
 		{
 			// no edges visible
@@ -236,7 +236,7 @@ class Site implements ICoord
 		var orientation:LR = _edgeOrientations[i];
 		points.push(edge.clippedEnds(orientation));
 		points.push(edge.clippedEnds(LR.other(orientation)));
-		
+
 		for (j in (i + 1)...n)
 		{
 			edge = edges[j];
@@ -248,10 +248,10 @@ class Site implements ICoord
 		}
 		// close up the polygon by adding another corner point of the bounds if needed:
 		connect(points, i, bounds, true);
-		
+
 		return points;
 	}
-	
+
 	private function connect(points:Array<Point>, j:Int, bounds:Rectangle, closingUp:Bool = false):Void
 	{
 		var rightPoint = points[points.length - 1];
@@ -397,7 +397,7 @@ class Site implements ICoord
 			points.push(newRightPoint);
 		}
 	}
-	
+
 	public var x(get, null):Float;
 	inline private function get_x() {
 		return coord.x;
@@ -407,7 +407,7 @@ class Site implements ICoord
 	inline private function get_y() {
 		return coord.y;
 	}
-	
+
 	public function dist(p:ICoord)
 	{
 		var dx2 = (p.coord.x - this.coord.x) * (p.coord.x - this.coord.x);
@@ -418,19 +418,19 @@ class Site implements ICoord
 }
 
 
-@: final class BoundsCheck
+@:final class BoundsCheck
 {
 	public static var TOP:Int = 1;
 	public static var BOTTOM:Int = 2;
 	public static var LEFT:Int = 4;
 	public static var RIGHT:Int = 8;
-	
+
 	/**
-	 * 
+	 *
 	 * @param point
 	 * @param bounds
 	 * @return an Int with the appropriate bits set if the Point lies on the corresponding bounds lines
-	 * 
+	 *
 	 */
 	public static function check(point:Point, bounds:Rectangle):Int
 	{
@@ -449,10 +449,10 @@ class Site implements ICoord
 		}
 		return value;
 	}
-	
+
 	private function new()
 	{
 		throw "BoundsCheck constructor unused";
 	}
-	
+
 }
