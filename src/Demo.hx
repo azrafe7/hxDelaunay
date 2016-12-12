@@ -348,6 +348,8 @@ class Demo extends Sprite {
 
 	// generic draw function for points
 	public function drawPoints(points:Array<Point>, color:Int, ?fillColor:Int = null) {
+		if (points == null || points.length == 0) return;
+		
 		g.lineStyle(THICKNESS, color, sampleImage ? SAMPLE_FILL_ALPHA : ALPHA);
 		if (fillColor != null) g.beginFill(fillColor, sampleImage ? SAMPLE_FILL_ALPHA : FILL_ALPHA);
 		else g.beginFill(0, 0);
