@@ -21,7 +21,11 @@ See original authors links for details and licensing (MIT).
 
 ### Update:
 
-- Delaunay triangulation visualisation [see js example](https://github.com/MatthijsKamstra/hxDelaunay/blob/master/src/DemoJs.hx)
+- Delaunay triangulation visualisation [see JS code example](https://github.com/MatthijsKamstra/hxDelaunay/blob/master/src/DemoJs.hx)
+
+[![](delaunay.png)](http://htmlpreview.github.io/?https://github.com/MatthijsKamstra/hxDelaunay/blob/master/bin/js/index.html)
+
+_click on image to see the code in action_
 
 
 # haxelib local use
@@ -44,7 +48,7 @@ don't forget to add it to your build file
 -lib hxdelaunay
 ```
 
-or for openfl
+or for **openfl**
 
 ```
 <haxelib name="hxdelaunay" />
