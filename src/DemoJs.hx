@@ -5,6 +5,11 @@ import js.Browser.*;
 import com.nodename.delaunay.*;
 import com.nodename.geom.*;
 
+/**
+ * hxDelaunay haxe js demo.
+ *
+ * @author @MatthijsKamstra
+ */
 class DemoJs {
 
 	var container : js.html.DivElement;
