@@ -21,9 +21,9 @@ See original authors links for details and licensing (MIT).
 
 ### Update:
 
-- Delaunay triangulation visualisation [see JS code example](https://github.com/MatthijsKamstra/hxDelaunay/blob/master/src/DemoJs.hx)
+- Delaunay triangulation visualisation [see JS code example](src/DemoJs.hx)
 
-[![](delaunay.png)](http://htmlpreview.github.io/?https://github.com/MatthijsKamstra/hxDelaunay/blob/master/bin/js/index.html)
+[![](delaunay.png)](https://rawgit.com/azrafe7/hxDelaunay/master/bin/js/index.html)
 
 _click on image to see the code in action_
 
@@ -39,7 +39,7 @@ haxelib dev hxdelaunay path/to/folder
 or use git directly
 
 ```
-haxelib git hxdelaunay https://github.com/MatthijsKamstra/hxDelaunay.git
+haxelib git hxdelaunay https://github.com/azrafe7/hxDelaunay.git
 ```
 
 don't forget to add it to your build file
@@ -55,12 +55,12 @@ or for **openfl**
 ```
 
 
-Check out the [openfl example](https://github.com/MatthijsKamstra/hxDelaunay/blob/master/src/Demo.hx) folder for more information.
+Check out the [openfl example](src/Demo.hx) for more information.
 
 
-Or a simpler [js code example](https://github.com/MatthijsKamstra/hxDelaunay/blob/master/src/DemoJs.hx)
+Or a simpler [js code example](src/DemoJs.hx).
 
-See it in action [JavaScript example](http://htmlpreview.github.io/?https://github.com/MatthijsKamstra/hxDelaunay/blob/master/bin/js/index.html)
+See it in action [JavaScript example](https://rawgit.com/azrafe7/hxDelaunay/master/bin/js/index.html).
 
 **Enjoy!**
 
