@@ -27,7 +27,7 @@ using StringTools;
 
 /**
  * hxDelaunay openFL demo.
- * 
+ *
  * @author azrafe7
  */
 class Demo extends Sprite {
@@ -45,7 +45,7 @@ class Demo extends Sprite {
 	private var SELECTED_COLOR:Int = 0x8020F0;
 	private var CENTROID_COLOR:Int = 0x111111;
 	private var MONALISA:String = "src/mona-lisa.png";
-	
+
 	private var THICKNESS:Float = 1.5;
 	private var ALPHA:Float = 1.;
 	private var FILL_ALPHA:Float = 1.;
@@ -54,11 +54,11 @@ class Demo extends Sprite {
 
 	private var TEXT_COLOR:Int = 0xFFFFFF;
 	private var TEXT_FONT:String = "_typewriter";
-	private var TEXT_SIZE:Float = 12;
+	private var TEXT_SIZE:Int = 12;
 	private var TEXT_OUTLINE:GlowFilter = new GlowFilter(0xFF000000, 1, 2, 2, 6);
 
 	private var BOUNDS:Rectangle = new Rectangle(0, 0, 500, 500);
-	
+
 	private var voronoi:Voronoi;
 	private var nPoints:Int = 25;
 	private var points:Array<Point>;
@@ -76,7 +76,7 @@ class Demo extends Sprite {
 	private var selectedRegion:Array<Point>;
 	private var monaListBMD:BitmapData;
 	private var monaLisaBitmap:Bitmap;
-	
+
 	private var isMouseDown:Bool = false;
 	private var prevMousePos:Point = new Point();
 	private var mousePos:Point = new Point();
@@ -89,26 +89,26 @@ class Demo extends Sprite {
 	private var showTree:Bool = false;
 	private var showOnion:Bool = false;
 	private var showProximityMap:Bool = false;
-	
+
 	private var relax:Bool = false;
 	private var animate:Bool = false;
 	private var sampleImage:Bool = false;
-	
+
 	private var startTime:Float = 0;
 	private var dt:Float = 0;
-	
+
 	private var text:TextField;
-	
+
 	private var TEXT:String =
 		"         hxDelaunay \n" +
 		"    (ported by azrafe7)\n\n" +
 		"\n" +
 		"          TOGGLE:\n\n" +
 		" 1  points        : |POINTS|\n" +
-		" 2  regions       : |REGIONS|\n" + 
-		" 3  fill regions  : |FILL|\n" + 
+		" 2  regions       : |REGIONS|\n" +
+		" 3  fill regions  : |FILL|\n" +
 		" 4  triangles     : |TRIANGLES|\n" +
-		" 5  convex hull   : |HULL|\n" + 
+		" 5  convex hull   : |HULL|\n" +
 		" 6  spanning tree : |TREE|\n" +
 		" 7  onion         : |ONION|\n" +
 		" 8  proximity map : |PROXIMITY|\n" +
@@ -124,10 +124,10 @@ class Demo extends Sprite {
 		" R  randomize\n" +
 		"\n\n" +
 		"      click & drag to\n" +
-		"     move region point" + 
+		"     move region point" +
 		"\n";
-	
-		
+
+
 	public function new () {
 		super ();
 
@@ -137,18 +137,18 @@ class Demo extends Sprite {
 		g.lineStyle(THICKNESS, TEXT_COLOR, ALPHA);
 
 		addChild(text = getTextField(TEXT, BOUNDS.width + 10, 15));
-		
+
 		// mona lisa
 		monaListBMD = Assets.getBitmapData(MONALISA);
 		monaLisaBitmap = new Bitmap(monaListBMD);
 		addChildAt(monaLisaBitmap, 0);
-		
+
 		// generate fill colors
 		var MAX_COLORS = 10;
 		fillColors = [for (i in 0...MAX_COLORS) colorLerp(MIN_FILL_COLOR, MAX_FILL_COLOR, i / MAX_COLORS)];
 		centroids = new Array<Point>();
 		directions = new Array<Point>();
-		
+
 		// first random set of points
 		points = new Array<Point>();
 		for (i in 0...nPoints) {
@@ -158,7 +158,7 @@ class Demo extends Sprite {
 		update();		// recalc
 		render();		// draw
 		updateText();	// info
-		
+
 		startTime = Timer.stamp();
 		//stage.addChild(new FPS(5, 5, 0xFFFFFF));
 		stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
@@ -168,7 +168,7 @@ class Demo extends Sprite {
 		stage.addEventListener(MouseEvent.MOUSE_MOVE, onMouseMove);
 	}
 
-	public function update():Void 
+	public function update():Void
 	{
 		if (voronoi != null) {
 			voronoi.dispose();
@@ -183,8 +183,8 @@ class Demo extends Sprite {
 		onion = calcOnion(voronoi);
 		updateProximityMap();
 	}
-	
-	public function updateText():Void 
+
+	public function updateText():Void
 	{
 		text.text = TEXT
 			.replace("|POINTS|", bool2OnOff(showPoints))
@@ -200,10 +200,10 @@ class Demo extends Sprite {
 			.replace("|ANIMATE|", bool2OnOff(animate))
 			.replace("|MONALISA|", bool2OnOff(sampleImage));
 	}
-	
+
 	public function render():Void {
 		g.clear();
-		
+
 		if (showRegions || fillRegions) drawRegions();
 		monaLisaBitmap.visible = (sampleImage && (!fillRegions || SAMPLE_FILL_ALPHA < FILL_ALPHA));
 		if (showProximityMap) {
@@ -219,21 +219,21 @@ class Demo extends Sprite {
 		if (selectedRegion != null) drawPoints(selectedRegion, SELECTED_COLOR);
 		if (relax && showPoints) drawCentroids();
 	}
-	
-	inline function bool2OnOff(v:Bool):String 
+
+	inline function bool2OnOff(v:Bool):String
 	{
 		return (v ? "[ON]" : "[OFF]");
 	}
-	
+
 	public function updateProximityMap():Void {
 		if (proxymityMap == null) {
 			proxymityMap = new BitmapData(Std.int(BOUNDS.width), Std.int(BOUNDS.height), false);
 			proxymitySprite = new Sprite();
-		} 
+		}
 		var graphics = proxymitySprite.graphics;
 		proxymityMap.fillRect(proxymityMap.rect, 0xFFFFFFFF);
 		graphics.clear();
-		
+
 		for (i in 0...sortedRegions.length) {
 			graphics.lineStyle(1, i, 1);	// no borders
 			graphics.beginFill(i);
@@ -246,12 +246,12 @@ class Demo extends Sprite {
 		}
 		proxymityMap.draw(proxymitySprite);
 	}
-	
-	public function calcOnion(voronoi:Voronoi):Array<Array<Point>> 
+
+	public function calcOnion(voronoi:Voronoi):Array<Array<Point>>
 	{
 		var res = new Array<Array<Point>>();
 		var points = voronoi.siteCoords();
-		
+
 		while (points.length > 2) {
 			var v:Voronoi = new Voronoi(points, null, BOUNDS);
 			var peel = v.hullPointsInOrder();
@@ -261,13 +261,13 @@ class Demo extends Sprite {
 			v = null;
 		}
 		if (points.length > 0) res.push(points);
-		
+
 		return res;
 	}
-	
-	
-	
-	public function drawSiteCoords():Void 
+
+
+
+	public function drawSiteCoords():Void
 	{
 		g.lineStyle(THICKNESS, POINT_COLOR, ALPHA);
 		for (p in points) {
@@ -275,7 +275,7 @@ class Demo extends Sprite {
 		}
 	}
 
-	public function drawCentroids():Void 
+	public function drawCentroids():Void
 	{
 		if (centroids.length < points.length) return;	// wait next frame
 		for (i in 0...points.length) {
@@ -287,79 +287,79 @@ class Demo extends Sprite {
 		}
 	}
 
-	public function drawRegions():Void 
+	public function drawRegions():Void
 	{
 		if (!sampleImage) {
 			var fillIdx = -1;
 			for (region in regions) {
 				fillIdx = (fillIdx + 1) % fillColors.length;
 				var fillColor = fillRegions ? fillColors[fillIdx] : null;
-				
+
 				drawPoints(region, fillRegions && !showRegions ? fillColors[fillIdx] : REGION_COLOR, fillColor);
 			}
 		} else {
 			for (p in points) {
 				var sampledColor = monaListBMD.getPixel(Std.int(p.x), Std.int(p.y));
-				
+
 				drawPoints(voronoi.region(p), fillRegions && showRegions ? REGION_COLOR : sampledColor, fillRegions ? sampledColor: null);
 			}
 		}
 	}
-	
-	inline public function drawTriangles():Void 
+
+	inline public function drawTriangles():Void
 	{
 		drawSegments(triangles, TRIANGLE_COLOR);
 	}
-	
-	inline public function drawHull():Void 
+
+	inline public function drawHull():Void
 	{
 		drawSegments(hull, HULL_COLOR);
 	}
-	
-	inline public function drawTree():Void 
+
+	inline public function drawTree():Void
 	{
 		drawSegments(tree, TREE_COLOR);
 	}
 
-	public function drawOnion():Void 
+	public function drawOnion():Void
 	{
 		for (peel in onion) {
 			drawPoints(peel, ONION_COLOR);
 		}
 	}
-	
 
-	
+
+
 	// generic draw function for segments
 	public function drawSegments(segments:Array<LineSegment>, color:Int, ?fillColor:Int = null) {
 		g.lineStyle(THICKNESS, color, ALPHA);
 		if (fillColor != null) g.beginFill(fillColor, FILL_ALPHA);
 		else g.beginFill(0, 0);
-		
+
 		for (segment in segments) {
 			g.moveTo(segment.p0.x, segment.p0.y);
 			g.lineTo(segment.p1.x, segment.p1.y);
 		}
-		
+
 		g.endFill();
 	}
-	
-	
+
+
 	// generic draw function for points
 	public function drawPoints(points:Array<Point>, color:Int, ?fillColor:Int = null) {
 		g.lineStyle(THICKNESS, color, sampleImage ? SAMPLE_FILL_ALPHA : ALPHA);
 		if (fillColor != null) g.beginFill(fillColor, sampleImage ? SAMPLE_FILL_ALPHA : FILL_ALPHA);
 		else g.beginFill(0, 0);
-		
+
 		for (p in points) {
 			if (p == points[0]) g.moveTo(p.x, p.y);
 			else g.lineTo(p.x, p.y);
 		}
-		
+
 		g.endFill();
 	}
-	
-	public function getCentroid(region:Array<Point>):Point 
+
+	public function getCentroid(region:Array<Point>):Point
 	{
 		var c = new Point();
 		var len = region.length;
@@ -375,8 +375,8 @@ class Demo extends Sprite {
 		c.y /= 6 * area;
 		return c;
 	}
-		
-	public function getArea(region:Array<Point>):Float 
+
+	public function getArea(region:Array<Point>):Float
 	{
 		var area = 0.0;
 		var len = region.length;
@@ -387,7 +387,7 @@ class Demo extends Sprite {
 		}
 		return area = .5 * area;
 	}
-		
+
 	public function getTextField(text:String = "", x:Float, y:Float):TextField
 	{
 		var tf:TextField = new TextField();
@@ -404,9 +404,9 @@ class Demo extends Sprite {
 		return tf;
 	}
 
-	public function onKeyDown(e:KeyboardEvent):Void 
+	public function onKeyDown(e:KeyboardEvent):Void
 	{
-		switch (e.keyCode) 
+		switch (e.keyCode)
 		{
 			// TOGGLE
 			case Keyboard.NUMBER_1: showPoints = !showPoints;
@@ -417,7 +417,7 @@ class Demo extends Sprite {
 			case Keyboard.NUMBER_6: showTree = !showTree;
 			case Keyboard.NUMBER_7: showOnion = !showOnion;
 			case Keyboard.NUMBER_8: showProximityMap = !showProximityMap;
-			
+
 			// POINTS
 			case Keyboard.NUMPAD_ADD, 43 /* or plus next to enter */:
 				points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
@@ -432,18 +432,18 @@ class Demo extends Sprite {
 			case Keyboard.R:
 				for (p in points) p.setTo(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height);
 				update();
-			case Keyboard.X: 
+			case Keyboard.X:
 				relax = !relax;
 				animate = false;
-			case Keyboard.A: 
+			case Keyboard.A:
 				animate = !animate;
 				relax = false;
-			case Keyboard.M: sampleImage = !sampleImage; 
+			case Keyboard.M: sampleImage = !sampleImage;
 		}
 
 		updateText();
 		render();
-		
+
 		if (e.keyCode == 27) {
 		#if (flash || html5)
 			System.exit(1);
@@ -452,37 +452,37 @@ class Demo extends Sprite {
 		#end
 		}
 	}
-	
-	public function onMouseDown(e:MouseEvent):Void 
+
+	public function onMouseDown(e:MouseEvent):Void
 	{
 		isMouseDown = true;
 	}
-	
-	public function onMouseUp(e:MouseEvent):Void 
+
+	public function onMouseUp(e:MouseEvent):Void
 	{
 		isMouseDown = false;
 		selectedRegion = null;
 		render();
 	}
-	
-	public function onMouseMove(e:MouseEvent):Void 
+
+	public function onMouseMove(e:MouseEvent):Void
 	{
 		mousePos.setTo(e.stageX, e.stageY);
 	}
-	
+
 	public function onEnterFrame(e:Event):Void {
 		dt = Timer.stamp() - startTime;
 		startTime = Timer.stamp();
-		
+
 		var mousePosChanged = !(mousePos.x == prevMousePos.x && mousePos.y == prevMousePos.y);
-		
+
 		if (relax) {
 			for (i in 0...points.length) {
 				var p = points[i];
 				var r = voronoi.region(p);
 				var c = getCentroid(r);
 				(i == centroids.length) ? centroids.push(c) : centroids[i] = c;
-				
+
 				var distSquared = Point.distanceSquared(c, p);
 				if (distSquared > 4.5) {	// slow down things a bit
 					c.x -= p.x; c.y -= p.y;
@@ -493,7 +493,7 @@ class Demo extends Sprite {
 				}
 			}
 		}
-		
+
 		if (animate) {
 			for (i in 0...points.length) {
 				if (i == directions.length) {
@@ -515,12 +515,12 @@ class Demo extends Sprite {
 				p.y += dy;
 			}
 		}
-		
+
 		if (relax || animate) {
 			update();
 			render();
 		}
-		
+
 		if (isMouseDown && mousePos.x > 0 && mousePos.x < BOUNDS.width && mousePos.y > 0 && mousePos.y < BOUNDS.height) {
 			var p = voronoi.nearestSitePoint(Std.int(mousePos.x), Std.int(mousePos.y));
 			if (p != null) {
@@ -532,7 +532,7 @@ class Demo extends Sprite {
 			prevMousePos.setTo(mousePos.x, mousePos.y);
 		}
 	}
-	
+
 	public function colorLerp(fromColor:Int, toColor:Int, t:Float = 1):Int
 	{
 		if (t <= 0) { return fromColor; }

@@ -30,7 +30,7 @@ class Voronoi {
 	private var _triangles:Array<Triangle>;
 	private var _edges:Array<Edge>;
 
-	
+
 	// TODO generalize this so it doesn't have to be a rectangle;
 	// then we can make the fractal voronois-within-voronois
 	private var _plotBounds:Rectangle;
@@ -38,7 +38,7 @@ class Voronoi {
 	{
 		return _plotBounds;
 	}
-	
+
 	public function dispose(): Void {
 		var i, n:Int;
 		if (_sites != null)
@@ -69,7 +69,7 @@ class Voronoi {
 		_plotBounds = null;
 		_sitesIndexedByLocation = null;
 	}
-	
+
 	public function new(points:Array<Point>, colors:Array<Int>, plotBounds:Rectangle)
 	{
 		_sites = new SiteList();
@@ -80,7 +80,7 @@ class Voronoi {
 		_edges = new Array<Edge>();
 		fortunesAlgorithm();
 	}
-	
+
 	private function addSites(points:Array<Point>, colors:Array<Int>):Void
 	{
 		var length:Int = points.length;
@@ -89,7 +89,7 @@ class Voronoi {
 			addSite(points[i], colors != null ? colors[i] : 0, i);
 		}
 	}
-	
+
 	private function addSite(p:Point, color:Int, index:Int):Void
 	{
 		var weight:Float = Math.random() * 100;
@@ -97,7 +97,7 @@ class Voronoi {
 		_sites.push(site);
 		_sitesIndexedByLocation[p] = site;
 	}
-	
+
 	public function region(p:Point):Array<Point>
 	{
 		var site:Site = _sitesIndexedByLocation[p];
@@ -107,7 +107,7 @@ class Voronoi {
 		}
 		return site.region(_plotBounds);
 	}
-	
+
 	public function neighborSitesForSite(coord:Point):Array<Point>
 	{
 		var points:Array<Point> = new Array<Point>();
@@ -129,7 +129,7 @@ class Voronoi {
 	{
 		return _sites.circles();
 	}
-	
+
 	public function edges() : Array<Edge> {
 		return _edges;
 	}
@@ -137,7 +137,7 @@ class Voronoi {
 	public function sites() : SiteList {
 		return _sites;
 	}
-	
+
 	public function voronoiBoundaryForSite(coord:Point):Array<LineSegment>
 	{
 		return SelectHelper.visibleLineSegments(SelectHelper.selectEdgesForSitePoint(coord, _edges));
@@ -147,46 +147,46 @@ class Voronoi {
 	{
 		return SelectHelper.delaunayLinesForEdges(SelectHelper.selectEdgesForSitePoint(coord, _edges));
 	}
-	
+
 	public function voronoiDiagram():Array<LineSegment>
 	{
 		return SelectHelper.visibleLineSegments(_edges);
 	}
-	
+
 	public function delaunayTriangulation():Array<LineSegment>
 	{
 		return SelectHelper.delaunayLinesForEdges(_edges);
 	}
-	
+
 	public function hull():Array<LineSegment>
 	{
 		return SelectHelper.delaunayLinesForEdges(hullEdges());
 	}
-	
+
 	inline static function myTest(edge:Edge):Bool
 	{
 		return edge.isPartOfConvexHull();
 	}
-	
+
 	private function hullEdges():Array<Edge> {
-		return _edges.filter(myTest);	
+		return _edges.filter(myTest);
 	}
 
 	public function hullPointsInOrder():Array<Point>
 	{
 		var hullEdges:Array<Edge> = hullEdges();
-		
+
 		var points:Array<Point> = new Array<Point>();
 		if (hullEdges.length == 0)
 		{
 			return points;
 		}
-		
+
 		var reorderer:EdgeReorderer = new EdgeReorderer(hullEdges, EdgeReorderer.edgeToLeftSite, EdgeReorderer.edgeToRightSite);
 		hullEdges = reorderer.edges;
 		var orientations:Array<LR> = reorderer.edgeOrientations;
 		reorderer.dispose();
-		
+
 		var orientation:LR;
 
 		var n:Int = hullEdges.length;
@@ -198,7 +198,7 @@ class Voronoi {
 		}
 		return points;
 	}
-	
+
 	public function spanningTree(type:SortType = null):Array<LineSegment>	{
 		var segments = SelectHelper.delaunayLinesForEdges(_edges);
 		return Kruskal.kruskal(segments, type);
@@ -208,43 +208,47 @@ class Voronoi {
 	{
 		return _sites.regions(_plotBounds);
 	}
-	
+
 	public function siteColors():Array<Int>
 	{
 		return _sites.siteColors();
 	}
-	
+
+	public function triangles():Array<Triangle>{
+		return _triangles;
+	}
+
 	/**
-	 * 
+	 *
 	 * @param x
 	 * @param y
 	 * @return coordinates of nearest Site to (x, y)
-	 * 
+	 *
 	 */
 	public function nearestSitePoint(x:Int, y:Int):Point
 	{
 		return _sites.nearestSitePoint(x, y);
 	}
-	
+
 	public function siteCoords():Array<Point> {
 		return _sites.siteCoords();
 	}
 
 	private function fortunesAlgorithm():Void {
-		
+
 		var newSite:Site;
 		var newintstar:Point = null;
-		
+
 		var dataBounds = _sites.getSitesBounds();
-		
+
 		var sqrt_nsites = Std.int(Math.sqrt(_sites.length + 4));
 		var heap = new HalfedgePriorityQueue(dataBounds.y, dataBounds.height, sqrt_nsites);
 		var edgeList = new EdgeList(dataBounds.x, dataBounds.width, sqrt_nsites);
 		var halfEdges = new Array<Halfedge>();
 		var vertices = new Array<Vertex>();
-		
+
 		var bottomMostSite:Site = _sites.next();
-		
+
 		var leftRegion = function(he:Halfedge):Site {
 			var edge:Edge = he.edge;
 			if (edge == null)
@@ -253,7 +257,7 @@ class Voronoi {
 			}
 			return edge.site(he.leftRight);
 		}
-		
+
 		var rightRegion = function(he:Halfedge):Site {
 			var edge:Edge = he.edge;
 			if (edge == null)
@@ -262,17 +266,17 @@ class Voronoi {
 			}
 			return edge.site(LR.other(he.leftRight));
 		}
-		
+
 		newSite = _sites.next();
-		
+
 		while (true) {
-			
+
 			if (heap.empty() == false) {
 				newintstar = heap.min();
 			}
-			
+
 			if (newSite != null &&  (heap.empty() || isInf(newSite, newintstar))) {
-				
+
 				/* new site is smallest */
 				//trace("smallest: new site " + newSite);
 //				trace("edgeList" + edgeList);
@@ -282,18 +286,18 @@ class Voronoi {
 				var bottomSite = rightRegion(lbnd);		// this is the same as leftRegion(rbnd)
 				// this Site determines the region containing the new site
 				//trace("new Site is in region of existing site: " + bottomSite);
-				
+
 				// Step 9:
 				var edge = Edge.createBisectingEdge(bottomSite, newSite);
 				//trace("new edge: " + edge);
 				_edges.push(edge);
-				
+
 				var bisector = Halfedge.create(edge, LR.LEFT);
 				halfEdges.push(bisector);
 				// inserting two Halfedges into edgeList constitutes Step 10:
 				// insert bisector to the right of lbnd:
 				edgeList.insert(lbnd, bisector);
-				
+
 				// first half of Step 11:
 				var vertex = Vertex.intersect(lbnd, bisector);
 				if (vertex != null)  {
@@ -304,26 +308,26 @@ class Voronoi {
 					lbnd.ystar = vertex.y + newSite.dist(vertex);
 					heap.insert(lbnd);
 				}
-				
+
 				lbnd = bisector;
 				bisector = Halfedge.create(edge, LR.RIGHT);
 				halfEdges.push(bisector);
 				// second Halfedge for Step 10:
 				// insert bisector to the right of lbnd:
 				edgeList.insert(lbnd, bisector);
-				
+
 				// second half of Step 11:
 				var vertex = Vertex.intersect(bisector, rbnd);
 				if (vertex != null) {
 					vertices.push(vertex);
 					bisector.vertex = vertex;
 					bisector.ystar = vertex.y + newSite.dist(vertex);
-					heap.insert(bisector);	
+					heap.insert(bisector);
 				}
-				
-				newSite = _sites.next();	
+
+				newSite = _sites.next();
 			} else if (heap.empty() == false) {
-				
+
 				/* intersection is smallest */
 				var lbnd = heap.extractMin();
 				var llbnd = lbnd.edgeListLeftNeighbor;
@@ -333,16 +337,16 @@ class Voronoi {
 				var topSite = rightRegion(rbnd);
 				// these three sites define a Delaunay triangle
 				// (not actually using these for anything...)
-				//_triangles.push(new Triangle(bottomSite, topSite, rightRegion(lbnd)));
-				
+				_triangles.push(new Triangle(bottomSite, topSite, rightRegion(lbnd)));
+
 				var v = lbnd.vertex;
 				v.setIndex();
 				lbnd.edge.setVertex(lbnd.leftRight, v);
 				rbnd.edge.setVertex(rbnd.leftRight, v);
-				edgeList.remove(lbnd); 
+				edgeList.remove(lbnd);
 				heap.remove(rbnd);
-				edgeList.remove(rbnd); 
-				
+				edgeList.remove(rbnd);
+
 				var leftRight = LR.LEFT;
 				if (bottomSite.y > topSite.y) {
 					var tempSite = bottomSite;
@@ -350,7 +354,7 @@ class Voronoi {
 					topSite = tempSite;
 					leftRight = LR.RIGHT;
 				}
-				
+
 				var edge = Edge.createBisectingEdge(bottomSite, topSite);
 				_edges.push(edge);
 				var bisector = Halfedge.create(edge, leftRight);
@@ -368,7 +372,7 @@ class Voronoi {
 				}
 				vertex = Vertex.intersect(bisector, rrbnd);
 				if (vertex != null) {
-					
+
 					vertices.push(vertex);
 					bisector.vertex = vertex;
 					bisector.ystar = vertex.y + bottomSite.dist(vertex);
@@ -378,16 +382,16 @@ class Voronoi {
 				break;
 			}
 		}
-				
+
 		// heap should be empty now
 		heap.dispose();
 		edgeList.dispose();
-		
+
 		for (halfEdge in halfEdges) {
 			halfEdge.reallyDispose();
 		}
 		halfEdges.clear();
-		
+
 		// we need the vertices to clip the edges
 		for (edge in _edges) {
 			edge.clipVertices(_plotBounds);
@@ -398,24 +402,24 @@ class Voronoi {
 		}
 		vertices.clear();
 	}
-	
+
 
 	inline static public function isInf(s1:Site, s2:Point) : Bool {
 		return (s1.y < s2.y) || (s1.y == s2.y && s1.x < s2.x);
 	}
-	
+
 	inline static public function isInfSite(s1:Site, s2:Site) : Bool {
 		return (s1.y < s2.y) || (s1.y == s2.y && s1.x < s2.x);
 	}
-	
+
 	public static function compareByYThenX(s1:Site, s2:Site):Int {
 	/*
-		return 
+		return
 			(s1.y < s2.y)? -1 :(
 			(s1.y > s2.y)? 1:(
 			(s1.x < s2.x)? -1:(
 			(s1.x > s2.x)? 1: 0)));
-	*/		
+	*/
 		if (s1.y < s2.y) return -1;
 		if (s1.y > s2.y) return 1;
 		if (s1.x < s2.x) return -1;
