@@ -352,10 +352,13 @@ class Demo extends Sprite {
 		if (fillColor != null) g.beginFill(fillColor, sampleImage ? SAMPLE_FILL_ALPHA : FILL_ALPHA);
 		else g.beginFill(0, 0);
 
-		for (p in points) {
-			if (p == points[0]) g.moveTo(p.x, p.y);
-			else g.lineTo(p.x, p.y);
+		var q = points[0];
+		g.moveTo(q.x, q.y);
+		for (i in 1...points.length) {
+			var p = points[i];
+			g.lineTo(p.x, p.y);
 		}
+		g.lineTo(q.x, q.y);
 
 		g.endFill();
 	}
