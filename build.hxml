@@ -1,0 +1,8 @@
+-cp src
+-cp com
+-main DemoJs
+-js bin/js/js_demo.js
+# -D source-map-content
+# -debug
+-dce full
+# -xml bin/delaunay.xml
