@@ -137,6 +137,7 @@ class Demo extends Sprite {
 		g.lineStyle(THICKNESS, TEXT_COLOR, ALPHA);
 
 		addChild(text = getTextField(TEXT, BOUNDS.width + 10, 15));
+		text.height = stage.stageHeight - text.y;  // makes sure it's _fully_ visible
 
 		// mona lisa
 		monaListBMD = Assets.getBitmapData(MONALISA);
