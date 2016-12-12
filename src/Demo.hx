@@ -54,7 +54,7 @@ class Demo extends Sprite {
 
 	private var TEXT_COLOR:Int = 0xFFFFFF;
 	private var TEXT_FONT:String = "_typewriter";
-	private var TEXT_SIZE:Float = 12;
+	private var TEXT_SIZE:Int = 12;
 	private var TEXT_OUTLINE:GlowFilter = new GlowFilter(0xFF000000, 1, 2, 2, 6);
 
 	private var BOUNDS:Rectangle = new Rectangle(0, 0, 500, 500);
@@ -393,7 +393,7 @@ class Demo extends Sprite {
 		var tf:TextField = new TextField();
 		var fmt:TextFormat = new TextFormat(TEXT_FONT, null, TEXT_COLOR);
 		fmt.align = TextFormatAlign.LEFT;
-		fmt.size = Std.int(TEXT_SIZE);
+		fmt.size = TEXT_SIZE;
 		tf.defaultTextFormat = fmt;
 		tf.autoSize = TextFieldAutoSize.LEFT;
 		tf.selectable = false;
