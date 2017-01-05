@@ -52,11 +52,18 @@ class DemoJs {
 
 	function generate(){
 		var rect = new Rectangle(0, 0, canvas.width, canvas.height);
-		// first random set of points
+		
+		// random set of inner points
 		var points = new Array<Point>();
 		for (i in 0...25) {
 			points.push(new Point(Math.random() * rect.width, Math.random() * rect.height));
 		}
+	
+		// add outer viewport bounding points
+		points.push(new Point(rect.left, rect.top));
+		points.push(new Point(rect.right, rect.top));
+		points.push(new Point(rect.right, rect.bottom));
+		points.push(new Point(rect.left, rect.bottom));
 
 		var voronoi : Voronoi = new Voronoi(points, null, rect);
 		var regions:Array<Array<Point>> = [for (p in points) voronoi.region(p)];

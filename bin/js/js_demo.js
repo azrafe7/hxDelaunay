@@ -47,6 +47,10 @@ DemoJs.prototype = {
 			++_g;
 			points.push(new com_nodename_geom_Point(Math.random() * rect.width,Math.random() * rect.height));
 		}
+		points.push(new com_nodename_geom_Point(rect.x,rect.y));
+		points.push(new com_nodename_geom_Point(rect.x + rect.width,rect.y));
+		points.push(new com_nodename_geom_Point(rect.x + rect.width,rect.y + rect.height));
+		points.push(new com_nodename_geom_Point(rect.x,rect.y + rect.height));
 		var voronoi = new com_nodename_delaunay_Voronoi(points,null,rect);
 		var _g1 = [];
 		var _g11 = 0;
@@ -101,7 +105,7 @@ com_nodename_delaunay_Edge.createBisectingEdge = function(site0,site1) {
 	var c = site0.coord.x * dx + site0.coord.y * dy + (dx * dx + dy * dy) * 0.5;
 	var a;
 	var b;
-	if((dx > 0?dx:-dx) > (dy > 0?dy:-dy)) {
+	if((dx > 0 ? dx : -dx) > (dy > 0 ? dy : -dy)) {
 		a = 1.0;
 		b = dy / dx;
 		c /= dx;
@@ -936,6 +940,7 @@ com_nodename_delaunay_SiteList.prototype = {
 };
 var com_nodename_delaunay_Triangle = function(a,b,c) {
 	this.sites = [a,b,c];
+	this.points = [a.coord,b.coord,c.coord];
 };
 com_nodename_delaunay_Triangle.__name__ = true;
 var com_nodename_delaunay_Vertex = function(x,y) {
@@ -1034,7 +1039,7 @@ com_nodename_delaunay_Voronoi.prototype = {
 		var _g1 = 0;
 		while(_g1 < length) {
 			var i = _g1++;
-			this.addSite(points[i],colors != null?colors[i]:0,i);
+			this.addSite(points[i],colors != null ? colors[i] : 0,i);
 		}
 	}
 	,addSite: function(p,color,index) {
@@ -1341,7 +1346,7 @@ js_Boot.__string_rec = function(o,s) {
 			var _g2 = l;
 			while(_g11 < _g2) {
 				var i2 = _g11++;
-				str1 += (i2 > 0?",":"") + js_Boot.__string_rec(o[i2],s);
+				str1 += (i2 > 0 ? "," : "") + js_Boot.__string_rec(o[i2],s);
 			}
 			str1 += "]";
 			return str1;
