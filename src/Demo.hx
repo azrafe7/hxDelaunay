@@ -405,7 +405,9 @@ class Demo extends Sprite {
 		tf.selectable = false;
 		tf.x = x;
 		tf.y = y;
+  #if (flash || html5)
 		tf.filters = [TEXT_OUTLINE];
+  #end
 		tf.text = text;
 		return tf;
 	}
