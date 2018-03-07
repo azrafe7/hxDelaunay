@@ -952,7 +952,7 @@ $hxClasses["ApplicationMain"] = ApplicationMain;
 ApplicationMain.__name__ = ["ApplicationMain"];
 ApplicationMain.main = function() {
 	var projectName = "Demo";
-	var config = { build : "35", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
+	var config = { build : "38", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
 	lime_system_System.__registerEntryPoint(projectName,ApplicationMain.create,config);
 };
 ApplicationMain.create = function(config) {
@@ -3218,7 +3218,7 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Demo = function() {
-	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  convex hull   : |HULL|\n" + " 6  spanning tree : |TREE|\n" + " 7  onion         : |ONION|\n" + " 8  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " M  mona lisa     : |MONALISA|\n" + "\n\n" + "        POINTS: (|NPOINTS|)\n\n" + " ▲  add\n" + " ▼  remove\n" + "\n" + " R  randomize\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
+	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  convex hull   : |HULL|\n" + " 6  spanning tree : |TREE|\n" + " 7  onion         : |ONION|\n" + " 8  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " M  mona lisa     : |MONALISA|\n" + "\n\n" + "        POINTS: (|NPOINTS|)\n\n" + " ▲  add\n" + " ▼  remove\n" + "\n" + " R  randomize\n" + "\n" + " S  save png\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
 	this.dt = 0;
 	this.startTime = 0;
 	this.sampleImage = false;
@@ -3257,9 +3257,9 @@ var Demo = function() {
 	this.REGION_COLOR = 4194544;
 	this.POINT_COLOR = 61440;
 	openfl_display_Sprite.call(this);
-	var sprite = new openfl_display_Sprite();
-	this.addChild(sprite);
-	this.g = sprite.get_graphics();
+	this.sprite = new openfl_display_Sprite();
+	this.addChild(this.sprite);
+	this.g = this.sprite.get_graphics();
 	this.g.lineStyle(this.THICKNESS,this.TEXT_COLOR,this.ALPHA);
 	this.addChild(this.text = this.getTextField(this.TEXT,this.BOUNDS.width + 10,15));
 	this.text.set_height(this.stage.stageHeight - this.text.get_y());
@@ -3356,6 +3356,7 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 	,dt: null
 	,text: null
 	,TEXT: null
+	,sprite: null
 	,update: function() {
 		if(this.voronoi != null) {
 			this.voronoi.dispose();
@@ -3673,6 +3674,19 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 			}
 			this.update();
 			break;
+		case 83:
+			this.showPoints = this.showHull = this.showOnion = this.showProximityMap = this.showTree = this.showTriangles = this.showRegions = false;
+			this.fillRegions = true;
+			this.sampleImage = true;
+			this.update();
+			var oldSampleFillAlpha = this.SAMPLE_FILL_ALPHA;
+			this.SAMPLE_FILL_ALPHA = .97;
+			this.render();
+			this.SAMPLE_FILL_ALPHA = oldSampleFillAlpha;
+			var tempBMD = new openfl_display_BitmapData(this.monaLisaBMD.width,this.monaLisaBMD.height,false,0);
+			tempBMD.draw(this.sprite);
+			this.savePNG(tempBMD,"voronoi.png");
+			break;
 		case 88:
 			this.relax = !this.relax;
 			this.animate = false;
@@ -3683,6 +3697,11 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 		if(e.keyCode == 27) {
 			openfl_system_System.exit(1);
 		}
+	}
+	,savePNG: function(bmd,filename) {
+		var ba = bmd.encode(bmd.rect,new openfl_display_PNGEncoderOptions());
+		var fileRef = new openfl_net_FileReference();
+		fileRef.save(ba,filename);
 	}
 	,onMouseDown: function(e) {
 		this.isMouseDown = true;
@@ -4082,6 +4101,35 @@ openfl_display_BitmapData.prototype = {
 			this.image.dirty = true;
 			this.image.version++;
 		}
+	}
+	,encode: function(rect,compressor,byteArray) {
+		if(!this.readable || rect == null) {
+			byteArray = null;
+			return byteArray;
+		}
+		if(byteArray == null) {
+			var this1 = new openfl_utils_ByteArrayData(0);
+			byteArray = this1;
+		}
+		var image = this.image;
+		if(!rect.equals(this.rect)) {
+			var matrix = openfl_geom_Matrix.__pool.get();
+			matrix.tx = Math.round(-rect.x);
+			matrix.ty = Math.round(-rect.y);
+			var bitmapData = new openfl_display_BitmapData(Math.ceil(rect.width),Math.ceil(rect.height),true,0);
+			bitmapData.draw(this,matrix);
+			image = bitmapData.image;
+			openfl_geom_Matrix.__pool.release(matrix);
+		}
+		if(js_Boot.__instanceof(compressor,openfl_display_PNGEncoderOptions)) {
+			byteArray.writeBytes(openfl_utils__$ByteArray_ByteArray_$Impl_$.fromBytes(image.encode("png")));
+			return byteArray;
+		} else if(js_Boot.__instanceof(compressor,openfl_display_JPEGEncoderOptions)) {
+			byteArray.writeBytes(openfl_utils__$ByteArray_ByteArray_$Impl_$.fromBytes(image.encode("jpg",(js_Boot.__cast(compressor , openfl_display_JPEGEncoderOptions)).quality)));
+			return byteArray;
+		}
+		byteArray = null;
+		return byteArray;
 	}
 	,fillRect: function(rect,color) {
 		if(rect == null) {
@@ -7605,6 +7653,28 @@ haxe_io_Bytes.prototype = {
 	length: null
 	,b: null
 	,data: null
+	,blit: function(pos,src,srcpos,len) {
+		if(pos < 0 || srcpos < 0 || len < 0 || pos + len > this.length || srcpos + len > src.length) {
+			throw new js__$Boot_HaxeError(haxe_io_Error.OutsideBounds);
+		}
+		if(srcpos == 0 && len == src.b.byteLength) {
+			this.b.set(src.b,pos);
+		} else {
+			this.b.set(src.b.subarray(srcpos,srcpos + len),pos);
+		}
+	}
+	,setUInt16: function(pos,v) {
+		if(this.data == null) {
+			this.data = new DataView(this.b.buffer,this.b.byteOffset,this.b.byteLength);
+		}
+		this.data.setUint16(pos,v,true);
+	}
+	,setInt32: function(pos,v) {
+		if(this.data == null) {
+			this.data = new DataView(this.b.buffer,this.b.byteOffset,this.b.byteLength);
+		}
+		this.data.setInt32(pos,v,true);
+	}
 	,getString: function(pos,len) {
 		if(pos < 0 || len < 0 || pos + len > this.length) {
 			throw new js__$Boot_HaxeError(haxe_io_Error.OutsideBounds);
@@ -8023,6 +8093,11 @@ var haxe_io_Path = function(path) {
 };
 $hxClasses["haxe.io.Path"] = haxe_io_Path;
 haxe_io_Path.__name__ = ["haxe","io","Path"];
+haxe_io_Path.withoutDirectory = function(path) {
+	var s = new haxe_io_Path(path);
+	s.dir = null;
+	return s.toString();
+};
 haxe_io_Path.directory = function(path) {
 	var s = new haxe_io_Path(path);
 	if(s.dir == null) {
@@ -8030,11 +8105,21 @@ haxe_io_Path.directory = function(path) {
 	}
 	return s.dir;
 };
+haxe_io_Path.extension = function(path) {
+	var s = new haxe_io_Path(path);
+	if(s.ext == null) {
+		return "";
+	}
+	return s.ext;
+};
 haxe_io_Path.prototype = {
 	dir: null
 	,file: null
 	,ext: null
 	,backslash: null
+	,toString: function() {
+		return (this.dir == null ? "" : this.dir + (this.backslash ? "\\" : "/")) + this.file + (this.ext == null ? "" : "." + this.ext);
+	}
 	,__class__: haxe_io_Path
 };
 var js__$Boot_HaxeError = function(val) {
@@ -11656,6 +11741,24 @@ lime_graphics_Image.prototype = {
 		default:
 		}
 	}
+	,encode: function(format,quality) {
+		if(quality == null) {
+			quality = 90;
+		}
+		if(format == null) {
+			format = "png";
+		}
+		switch(format) {
+		case "bmp":
+			return lime_graphics_format_BMP.encode(this);
+		case "jpeg":case "jpg":
+			return lime_graphics_format_JPEG.encode(this,quality);
+		case "png":
+			return lime_graphics_format_PNG.encode(this);
+		default:
+		}
+		return null;
+	}
 	,fillRect: function(rect,color,format) {
 		rect = this.__clipRect(rect);
 		if(this.buffer == null || rect == null) {
@@ -11747,6 +11850,23 @@ lime_graphics_Image.prototype = {
 			break;
 		default:
 			return 0;
+		}
+	}
+	,getPixels: function(rect,format) {
+		if(this.buffer == null) {
+			return null;
+		}
+		var _g = this.type;
+		switch(_g[1]) {
+		case 0:
+			return lime_graphics_utils_ImageCanvasUtil.getPixels(this,rect,format);
+		case 1:
+			lime_graphics_utils_ImageCanvasUtil.convertToData(this);
+			return lime_graphics_utils_ImageDataUtil.getPixels(this,rect,format);
+		case 2:
+			return null;
+		default:
+			return null;
 		}
 	}
 	,__clipRect: function(r) {
@@ -12103,6 +12223,236 @@ $hxClasses["lime.graphics.cairo._CairoSurface.CairoSurface_Impl_"] = lime_graphi
 lime_graphics_cairo__$CairoSurface_CairoSurface_$Impl_$.__name__ = ["lime","graphics","cairo","_CairoSurface","CairoSurface_Impl_"];
 lime_graphics_cairo__$CairoSurface_CairoSurface_$Impl_$.flush = function(this1) {
 };
+var lime_graphics_format_BMP = function() { };
+$hxClasses["lime.graphics.format.BMP"] = lime_graphics_format_BMP;
+lime_graphics_format_BMP.__name__ = ["lime","graphics","format","BMP"];
+lime_graphics_format_BMP.encode = function(image,type) {
+	if(image.get_premultiplied() || image.get_format() != 0) {
+		image = image.clone();
+		image.set_premultiplied(false);
+		image.set_format(0);
+	}
+	if(type == null) {
+		type = lime_graphics_format_BMPType.RGB;
+	}
+	var fileHeaderLength = 14;
+	var infoHeaderLength = 40;
+	var pixelValuesLength = image.width * image.height * 4;
+	if(type != null) {
+		switch(type[1]) {
+		case 0:
+			pixelValuesLength = image.width * 3 + image.width * 3 % 4 + image.height * 3 + image.height * 3;
+			break;
+		case 1:
+			infoHeaderLength = 108;
+			break;
+		case 2:
+			fileHeaderLength = 0;
+			pixelValuesLength += image.width * image.height;
+			break;
+		}
+	}
+	var data = new haxe_io_Bytes(new ArrayBuffer(fileHeaderLength + infoHeaderLength + pixelValuesLength));
+	var position = 0;
+	if(fileHeaderLength > 0) {
+		data.b[position++] = 66;
+		data.b[position++] = 77;
+		data.setInt32(position,data.length);
+		position += 4;
+		data.setUInt16(position,0);
+		position += 2;
+		data.setUInt16(position,0);
+		position += 2;
+		data.setInt32(position,fileHeaderLength + infoHeaderLength);
+		position += 4;
+	}
+	data.setInt32(position,infoHeaderLength);
+	position += 4;
+	data.setInt32(position,image.width);
+	position += 4;
+	data.setInt32(position,type == lime_graphics_format_BMPType.ICO ? image.height * 2 : image.height);
+	position += 4;
+	data.setUInt16(position,1);
+	position += 2;
+	data.setUInt16(position,type == lime_graphics_format_BMPType.RGB ? 24 : 32);
+	position += 2;
+	data.setInt32(position,type == lime_graphics_format_BMPType.BITFIELD ? 3 : 0);
+	position += 4;
+	data.setInt32(position,pixelValuesLength);
+	position += 4;
+	data.setInt32(position,11824);
+	position += 4;
+	data.setInt32(position,11824);
+	position += 4;
+	data.setInt32(position,0);
+	position += 4;
+	data.setInt32(position,0);
+	position += 4;
+	if(type == lime_graphics_format_BMPType.BITFIELD) {
+		data.setInt32(position,16711680);
+		position += 4;
+		data.setInt32(position,65280);
+		position += 4;
+		data.setInt32(position,255);
+		position += 4;
+		data.setInt32(position,-16777216);
+		position += 4;
+		data.b[position++] = 32;
+		data.b[position++] = 110;
+		data.b[position++] = 105;
+		data.b[position++] = 87;
+		var _g = 0;
+		while(_g < 48) {
+			var i = _g++;
+			data.b[position++] = 0;
+		}
+	}
+	var pixels = image.getPixels(new lime_math_Rectangle(0,0,image.width,image.height),1);
+	var readPosition = 0;
+	var a;
+	var r;
+	var g;
+	var b;
+	if(type != null) {
+		switch(type[1]) {
+		case 0:
+			var _g1 = 0;
+			var _g2 = image.height;
+			while(_g1 < _g2) {
+				var y = _g1++;
+				readPosition = (image.height - 1 - y) * 4 * image.width;
+				var _g3 = 0;
+				var _g21 = image.width;
+				while(_g3 < _g21) {
+					var x = _g3++;
+					a = pixels.b[readPosition++];
+					r = pixels.b[readPosition++];
+					g = pixels.b[readPosition++];
+					b = pixels.b[readPosition++];
+					data.b[position++] = b & 255;
+					data.b[position++] = g & 255;
+					data.b[position++] = r & 255;
+				}
+				var _g31 = 0;
+				var _g22 = image.width * 3 % 4;
+				while(_g31 < _g22) {
+					var i1 = _g31++;
+					data.b[position++] = 0;
+				}
+			}
+			break;
+		case 1:
+			var _g11 = 0;
+			var _g4 = image.height;
+			while(_g11 < _g4) {
+				var y1 = _g11++;
+				readPosition = (image.height - 1 - y1) * 4 * image.width;
+				var _g32 = 0;
+				var _g23 = image.width;
+				while(_g32 < _g23) {
+					var x1 = _g32++;
+					a = pixels.b[readPosition++];
+					r = pixels.b[readPosition++];
+					g = pixels.b[readPosition++];
+					b = pixels.b[readPosition++];
+					data.b[position++] = b & 255;
+					data.b[position++] = g & 255;
+					data.b[position++] = r & 255;
+					data.b[position++] = a & 255;
+				}
+			}
+			break;
+		case 2:
+			var andMask = new haxe_io_Bytes(new ArrayBuffer(image.width * image.height));
+			var maskPosition = 0;
+			var _g12 = 0;
+			var _g5 = image.height;
+			while(_g12 < _g5) {
+				var y2 = _g12++;
+				readPosition = (image.height - 1 - y2) * 4 * image.width;
+				var _g33 = 0;
+				var _g24 = image.width;
+				while(_g33 < _g24) {
+					var x2 = _g33++;
+					a = pixels.b[readPosition++];
+					r = pixels.b[readPosition++];
+					g = pixels.b[readPosition++];
+					b = pixels.b[readPosition++];
+					data.b[position++] = b & 255;
+					data.b[position++] = g & 255;
+					data.b[position++] = r & 255;
+					data.b[position++] = a & 255;
+					andMask.b[maskPosition++] = 0;
+				}
+			}
+			data.blit(position,andMask,0,image.width * image.height);
+			break;
+		}
+	}
+	return data;
+};
+var lime_graphics_format_BMPType = $hxClasses["lime.graphics.format.BMPType"] = { __ename__ : ["lime","graphics","format","BMPType"], __constructs__ : ["RGB","BITFIELD","ICO"] };
+lime_graphics_format_BMPType.RGB = ["RGB",0];
+lime_graphics_format_BMPType.RGB.toString = $estr;
+lime_graphics_format_BMPType.RGB.__enum__ = lime_graphics_format_BMPType;
+lime_graphics_format_BMPType.BITFIELD = ["BITFIELD",1];
+lime_graphics_format_BMPType.BITFIELD.toString = $estr;
+lime_graphics_format_BMPType.BITFIELD.__enum__ = lime_graphics_format_BMPType;
+lime_graphics_format_BMPType.ICO = ["ICO",2];
+lime_graphics_format_BMPType.ICO.toString = $estr;
+lime_graphics_format_BMPType.ICO.__enum__ = lime_graphics_format_BMPType;
+var lime_graphics_format_JPEG = function() { };
+$hxClasses["lime.graphics.format.JPEG"] = lime_graphics_format_JPEG;
+lime_graphics_format_JPEG.__name__ = ["lime","graphics","format","JPEG"];
+lime_graphics_format_JPEG.encode = function(image,quality) {
+	if(image.get_premultiplied() || image.get_format() != 0) {
+		image = image.clone();
+		image.set_premultiplied(false);
+		image.set_format(0);
+	}
+	image.type = lime_graphics_ImageType.CANVAS;
+	lime_graphics_utils_ImageCanvasUtil.sync(image,false);
+	if(image.buffer.__srcCanvas != null) {
+		var data = image.buffer.__srcCanvas.toDataURL("image/jpeg",quality / 100);
+		var buffer = window.atob(data.split(";base64,")[1]);
+		var bytes = new haxe_io_Bytes(new ArrayBuffer(buffer.length));
+		var _g1 = 0;
+		var _g = buffer.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var v = HxOverrides.cca(buffer,i);
+			bytes.b[i] = v & 255;
+		}
+		return bytes;
+	}
+	return null;
+};
+var lime_graphics_format_PNG = function() { };
+$hxClasses["lime.graphics.format.PNG"] = lime_graphics_format_PNG;
+lime_graphics_format_PNG.__name__ = ["lime","graphics","format","PNG"];
+lime_graphics_format_PNG.encode = function(image) {
+	if(image.get_premultiplied() || image.get_format() != 0) {
+		image = image.clone();
+		image.set_premultiplied(false);
+		image.set_format(0);
+	}
+	image.type = lime_graphics_ImageType.CANVAS;
+	lime_graphics_utils_ImageCanvasUtil.sync(image,false);
+	if(image.buffer.__srcCanvas != null) {
+		var data = image.buffer.__srcCanvas.toDataURL("image/png");
+		var buffer = window.atob(data.split(";base64,")[1]);
+		var bytes = new haxe_io_Bytes(new ArrayBuffer(buffer.length));
+		var _g1 = 0;
+		var _g = buffer.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var v = HxOverrides.cca(buffer,i);
+			bytes.b[i] = v & 255;
+		}
+		return bytes;
+	}
+	return null;
+};
 var lime_graphics_opengl_GL = function() { };
 $hxClasses["lime.graphics.opengl.GL"] = lime_graphics_opengl_GL;
 lime_graphics_opengl_GL.__name__ = ["lime","graphics","opengl","GL"];
@@ -12322,6 +12672,10 @@ lime_graphics_utils_ImageCanvasUtil.fillRect = function(image,rect,color,format)
 lime_graphics_utils_ImageCanvasUtil.getPixel = function(image,x,y,format) {
 	lime_graphics_utils_ImageCanvasUtil.convertToData(image);
 	return lime_graphics_utils_ImageDataUtil.getPixel(image,x,y,format);
+};
+lime_graphics_utils_ImageCanvasUtil.getPixels = function(image,rect,format) {
+	lime_graphics_utils_ImageCanvasUtil.convertToData(image);
+	return lime_graphics_utils_ImageDataUtil.getPixels(image,rect,format);
 };
 lime_graphics_utils_ImageCanvasUtil.sync = function(image,clear) {
 	if(image == null) {
@@ -13337,6 +13691,73 @@ lime_graphics_utils_ImageDataUtil.getPixel = function(image,x,y,format) {
 	default:
 		return pixel;
 	}
+};
+lime_graphics_utils_ImageDataUtil.getPixels = function(image,rect,format) {
+	if(image.buffer.data == null) {
+		return null;
+	}
+	var length = rect.width * rect.height | 0;
+	var bytes = new haxe_io_Bytes(new ArrayBuffer(length * 4));
+	var data = image.buffer.data;
+	var sourceFormat = image.buffer.format;
+	var premultiplied = image.buffer.premultiplied;
+	var dataView = new lime_graphics_utils__$ImageDataUtil_ImageDataView(image,rect);
+	var position;
+	var argb;
+	var bgra;
+	var pixel;
+	var destPosition = 0;
+	var _g1 = 0;
+	var _g = dataView.height;
+	while(_g1 < _g) {
+		var y = _g1++;
+		position = dataView.byteOffset + dataView.stride * y;
+		var _g3 = 0;
+		var _g2 = dataView.width;
+		while(_g3 < _g2) {
+			var x = _g3++;
+			switch(sourceFormat) {
+			case 0:
+				pixel = (data[position] & 255) << 24 | (data[position + 1] & 255) << 16 | (data[position + 2] & 255) << 8 | data[position + 3] & 255;
+				break;
+			case 1:
+				pixel = (data[position + 1] & 255) << 24 | (data[position + 2] & 255) << 16 | (data[position + 3] & 255) << 8 | data[position] & 255;
+				break;
+			case 2:
+				pixel = (data[position + 2] & 255) << 24 | (data[position + 1] & 255) << 16 | (data[position] & 255) << 8 | data[position + 3] & 255;
+				break;
+			}
+			if(premultiplied) {
+				if((pixel & 255) != 0 && (pixel & 255) != 255) {
+					lime_math_color__$RGBA_RGBA_$Impl_$.unmult = 255.0 / (pixel & 255);
+					pixel = (lime_math_color__$RGBA_RGBA_$Impl_$.__clamp[Math.round((pixel >>> 24 & 255) * lime_math_color__$RGBA_RGBA_$Impl_$.unmult)] & 255) << 24 | (lime_math_color__$RGBA_RGBA_$Impl_$.__clamp[Math.round((pixel >>> 16 & 255) * lime_math_color__$RGBA_RGBA_$Impl_$.unmult)] & 255) << 16 | (lime_math_color__$RGBA_RGBA_$Impl_$.__clamp[Math.round((pixel >>> 8 & 255) * lime_math_color__$RGBA_RGBA_$Impl_$.unmult)] & 255) << 8 | pixel & 255 & 255;
+				}
+			}
+			switch(format) {
+			case 1:
+				var this1 = 0;
+				var argb1 = this1;
+				argb1 = (pixel & 255 & 255) << 24 | (pixel >>> 24 & 255 & 255) << 16 | (pixel >>> 16 & 255 & 255) << 8 | pixel >>> 8 & 255 & 255;
+				argb = argb1;
+				pixel = argb;
+				break;
+			case 2:
+				var this2 = 0;
+				var bgra1 = this2;
+				bgra1 = (pixel >>> 8 & 255 & 255) << 24 | (pixel >>> 16 & 255 & 255) << 16 | (pixel >>> 24 & 255 & 255) << 8 | pixel & 255 & 255;
+				bgra = bgra1;
+				pixel = bgra;
+				break;
+			default:
+			}
+			bytes.b[destPosition++] = pixel >>> 24 & 255 & 255;
+			bytes.b[destPosition++] = pixel >>> 16 & 255 & 255;
+			bytes.b[destPosition++] = pixel >>> 8 & 255 & 255;
+			bytes.b[destPosition++] = pixel & 255 & 255;
+			position += 4;
+		}
+	}
+	return bytes;
 };
 lime_graphics_utils_ImageDataUtil.multiplyAlpha = function(image) {
 	var data = image.buffer.data;
@@ -14921,6 +15342,43 @@ lime_text_unifill__$Utf16_Utf16Impl.decode_code_point = function(len,accessor,in
 		return hi;
 	}
 };
+var lime_ui_FileDialog = function() {
+	this.onSave = new lime_app__$Event_$String_$Void();
+	this.onCancel = new lime_app__$Event_$Void_$Void();
+};
+$hxClasses["lime.ui.FileDialog"] = lime_ui_FileDialog;
+lime_ui_FileDialog.__name__ = ["lime","ui","FileDialog"];
+lime_ui_FileDialog.prototype = {
+	onCancel: null
+	,onSave: null
+	,save: function(data,filter,defaultPath,title) {
+		if(data == null) {
+			this.onCancel.dispatch();
+			return false;
+		}
+		var type = "application/octet-stream";
+		var defaultExtension = "";
+		if(lime_graphics_Image.__isPNG(data)) {
+			type = "image/png";
+			defaultExtension = ".png";
+		} else if(lime_graphics_Image.__isJPG(data)) {
+			type = "image/jpeg";
+			defaultExtension = ".jpg";
+		} else if(lime_graphics_Image.__isGIF(data)) {
+			type = "image/gif";
+			defaultExtension = ".gif";
+		} else if(lime_graphics_Image.__isWebP(data)) {
+			type = "image/webp";
+			defaultExtension = ".webp";
+		}
+		var path = defaultPath != null ? haxe_io_Path.withoutDirectory(defaultPath) : "download" + defaultExtension;
+		var buffer = data.b.bufferValue;
+		window.saveAs(new Blob([buffer],{ type : type}),path,true);
+		this.onSave.dispatch(path);
+		return true;
+	}
+	,__class__: lime_ui_FileDialog
+};
 var lime_ui_Gamepad = function(id) {
 	this.onDisconnect = new lime_app__$Event_$Void_$Void();
 	this.onButtonUp = new lime_app__$Event_$lime_$ui_$GamepadButton_$Void();
@@ -15236,7 +15694,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 613865;
+	this.version = 750674;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = ["lime","utils","AssetCache"];
@@ -29621,6 +30079,18 @@ openfl_display_Graphics.prototype = {
 	}
 	,__class__: openfl_display_Graphics
 };
+var openfl_display_JPEGEncoderOptions = function(quality) {
+	if(quality == null) {
+		quality = 80;
+	}
+	this.quality = quality;
+};
+$hxClasses["openfl.display.JPEGEncoderOptions"] = openfl_display_JPEGEncoderOptions;
+openfl_display_JPEGEncoderOptions.__name__ = ["openfl","display","JPEGEncoderOptions"];
+openfl_display_JPEGEncoderOptions.prototype = {
+	quality: null
+	,__class__: openfl_display_JPEGEncoderOptions
+};
 var openfl_display__$JointStyle_JointStyle_$Impl_$ = {};
 $hxClasses["openfl.display._JointStyle.JointStyle_Impl_"] = openfl_display__$JointStyle_JointStyle_$Impl_$;
 openfl_display__$JointStyle_JointStyle_$Impl_$.__name__ = ["openfl","display","_JointStyle","JointStyle_Impl_"];
@@ -30157,6 +30627,18 @@ openfl_display__$MovieClip_FrameSymbolInstance.prototype = {
 	,initFrame: null
 	,initFrameObjectID: null
 	,__class__: openfl_display__$MovieClip_FrameSymbolInstance
+};
+var openfl_display_PNGEncoderOptions = function(fastCompression) {
+	if(fastCompression == null) {
+		fastCompression = false;
+	}
+	this.fastCompression = fastCompression;
+};
+$hxClasses["openfl.display.PNGEncoderOptions"] = openfl_display_PNGEncoderOptions;
+openfl_display_PNGEncoderOptions.__name__ = ["openfl","display","PNGEncoderOptions"];
+openfl_display_PNGEncoderOptions.prototype = {
+	fastCompression: null
+	,__class__: openfl_display_PNGEncoderOptions
 };
 var openfl_display_Preloader = function(display) {
 	lime_app_Preloader.call(this);
@@ -34482,6 +34964,44 @@ openfl_media_SoundMixer.__registerSoundChannel = function(soundChannel) {
 openfl_media_SoundMixer.__unregisterSoundChannel = function(soundChannel) {
 	HxOverrides.remove(openfl_media_SoundMixer.__soundChannels,soundChannel);
 };
+var openfl_net_FileReference = function() {
+	openfl_events_EventDispatcher.call(this);
+};
+$hxClasses["openfl.net.FileReference"] = openfl_net_FileReference;
+openfl_net_FileReference.__name__ = ["openfl","net","FileReference"];
+openfl_net_FileReference.__super__ = openfl_events_EventDispatcher;
+openfl_net_FileReference.prototype = $extend(openfl_events_EventDispatcher.prototype,{
+	__data: null
+	,__path: null
+	,save: function(data,defaultFileName) {
+		this.__data = null;
+		this.__path = null;
+		if(data == null) {
+			return;
+		}
+		if(js_Boot.__instanceof(data,openfl_utils_ByteArrayData)) {
+			this.__data = data;
+		} else {
+			var this1 = new openfl_utils_ByteArrayData(0);
+			this.__data = this1;
+			this.__data.writeUTFBytes(Std.string(data));
+		}
+		var saveFileDialog = new lime_ui_FileDialog();
+		saveFileDialog.onCancel.add($bind(this,this.saveFileDialog_onCancel));
+		saveFileDialog.onSave.add($bind(this,this.saveFileDialog_onSave));
+		saveFileDialog.save(openfl_utils__$ByteArray_ByteArray_$Impl_$.toBytes(this.__data),defaultFileName != null ? haxe_io_Path.extension(defaultFileName) : null,defaultFileName);
+	}
+	,saveFileDialog_onCancel: function() {
+		this.dispatchEvent(new openfl_events_Event("cancel"));
+	}
+	,saveFileDialog_onSave: function(path) {
+		var _gthis = this;
+		haxe_Timer.delay(function() {
+			_gthis.dispatchEvent(new openfl_events_Event("complete"));
+		},1);
+	}
+	,__class__: openfl_net_FileReference
+});
 var openfl_net_NetConnection = function() {
 	openfl_events_EventDispatcher.call(this);
 };
@@ -37691,11 +38211,49 @@ openfl_utils_ByteArrayData.prototype = $extend(haxe_io_Bytes.prototype,{
 			throw new js__$Boot_HaxeError(new openfl_errors_EOFError());
 		}
 	}
+	,writeBytes: function(bytes,offset,length) {
+		if(length == null) {
+			length = 0;
+		}
+		if(offset == null) {
+			offset = 0;
+		}
+		if(openfl_utils__$ByteArray_ByteArray_$Impl_$.get_length(bytes) == 0) {
+			return;
+		}
+		if(length == 0) {
+			length = openfl_utils__$ByteArray_ByteArray_$Impl_$.get_length(bytes) - offset;
+		}
+		this.__resize(this.position + length);
+		this.blit(this.position,bytes,offset,length);
+		this.position = this.position + length;
+	}
+	,writeUTFBytes: function(value) {
+		var bytes = haxe_io_Bytes.ofString(value);
+		this.writeBytes(openfl_utils__$ByteArray_ByteArray_$Impl_$.fromBytes(haxe_io_Bytes.ofString(value)));
+	}
 	,__fromBytes: function(bytes) {
 		this.b = bytes.b;
 		this.__length = bytes.length;
 		this.data = bytes.data;
 		this.length = bytes.length;
+	}
+	,__resize: function(size) {
+		if(size > this.__length) {
+			var bytes = new haxe_io_Bytes(new ArrayBuffer((size + 1) * 3 >> 1));
+			if(this.__length > 0) {
+				var cacheLength = this.length;
+				this.length = this.__length;
+				bytes.blit(0,this,0,this.__length);
+				this.length = cacheLength;
+			}
+			this.b = bytes.b;
+			this.__length = bytes.length;
+			this.data = bytes.data;
+		}
+		if(this.length < size) {
+			this.length = size;
+		}
 	}
 	,__class__: openfl_utils_ByteArrayData
 });

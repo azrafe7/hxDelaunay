@@ -131,16 +131,21 @@ class Demo extends Sprite {
 		" ▼  remove\n" +
 		"\n" +
 		" R  randomize\n" +
+	#if (openfl)	
+		"\n" +
+		" S  save png\n" +
+	#end
 		"\n\n" +
 		"      click & drag to\n" +
 		"     move region point" +
 		"\n";
 
+  var sprite:Sprite;
 
 	public function new () {
 		super ();
 
-		var sprite:Sprite = new Sprite();
+		sprite = new Sprite();
 		addChild(sprite);
 		g = sprite.graphics;
 		g.lineStyle(THICKNESS, TEXT_COLOR, ALPHA);
@@ -464,6 +469,26 @@ class Demo extends Sprite {
 				animate = !animate;
 				relax = false;
 			case Keyboard.M: sampleImage = !sampleImage;
+			case Keyboard.S: 
+			#if (openfl)
+				showPoints = showHull = showOnion = showProximityMap = showTree = showTriangles = showRegions = false;
+				fillRegions = true;
+				sampleImage = true;
+				update();
+				var oldSampleFillAlpha = SAMPLE_FILL_ALPHA;
+				SAMPLE_FILL_ALPHA = .97;
+				
+				render();
+				
+				SAMPLE_FILL_ALPHA = oldSampleFillAlpha;
+				var tempBMD = new BitmapData(monaLisaBMD.width, monaLisaBMD.height, false, 0);
+				tempBMD.draw(sprite);
+				//var tempBMP = new Bitmap(tempBMD);
+				//addChild(tempBMP);
+				//sprite.visible = false;
+				
+				savePNG(tempBMD, "voronoi.png");
+			#end
 		}
 
 		updateText();
@@ -476,6 +501,15 @@ class Demo extends Sprite {
 			Sys.exit(1);
 		#end
 		}
+	}
+
+	public function savePNG(bmd:BitmapData, filename:String) 
+	{
+	#if (openfl)
+		var ba:openfl.utils.ByteArray = bmd.encode(bmd.rect, new openfl.display.PNGEncoderOptions());
+		var fileRef = new openfl.net.FileReference();
+		fileRef.save(ba, filename);
+	#end
 	}
 
 	public function onMouseDown(e:MouseEvent):Void

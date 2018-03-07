@@ -8,7 +8,7 @@
 	<window width="700" height="500" unless="mobile" />
 	<window orientation="landscape" vsync="false" antialiasing="0" if="cpp" />
 	
-	<set name="SWF_VERSION" value="11.2" />
+	<set name="SWF_VERSION" value="11.3" />
 	<source path="src" />
 	
 	<set name="SHOW_CONSOLE" value="1" if="debug" />
