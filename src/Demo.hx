@@ -25,6 +25,13 @@ import openfl.Assets;
 
 using StringTools;
 
+
+@:bitmap("src/mona-lisa.png")
+class MonaLisa extends flash.display.BitmapData {}
+
+@:bitmap("src/mona-lisa-mini.png")
+class MonaLisaMini extends flash.display.BitmapData {}
+
 /**
  * hxDelaunay openFL demo.
  *
@@ -45,6 +52,7 @@ class Demo extends Sprite {
 	private var SELECTED_COLOR:Int = 0x8020F0;
 	private var CENTROID_COLOR:Int = 0x111111;
 	private var MONALISA:String = "src/mona-lisa.png";
+	private var MONALISA_MINI:String = "src/mona-lisa-mini.png";
 
 	private var THICKNESS:Float = 1.5;
 	private var ALPHA:Float = 1.;
@@ -74,9 +82,10 @@ class Demo extends Sprite {
 	private var proxymitySprite:Sprite;
 	private var proxymityMap:BitmapData;
 	private var selectedRegion:Array<Point>;
-	private var monaListBMD:BitmapData;
+	private var monaLisaBMD:BitmapData;
 	private var monaLisaBitmap:Bitmap;
-
+  private var monaLisaMiniBMD:BitmapData; // downscaled by a factor of 4
+	
 	private var isMouseDown:Bool = false;
 	private var prevMousePos:Point = new Point();
 	private var mousePos:Point = new Point();
@@ -118,8 +127,8 @@ class Demo extends Sprite {
 		" M  mona lisa     : |MONALISA|\n" +
 		"\n\n" +
 		"        POINTS: (|NPOINTS|)\n\n" +
-		" +  add\n" +
-		" -  remove\n" +
+		" ▲  add\n" +
+		" ▼  remove\n" +
 		"\n" +
 		" R  randomize\n" +
 		"\n\n" +
@@ -140,8 +149,14 @@ class Demo extends Sprite {
 		text.height = stage.stageHeight - text.y;  // makes sure it's _fully_ visible
 
 		// mona lisa
-		monaListBMD = Assets.getBitmapData(MONALISA);
-		monaLisaBitmap = new Bitmap(monaListBMD);
+	#if (!jsprime)
+		monaLisaBMD = new MonaLisa(0, 0);
+		monaLisaMiniBMD = new MonaLisaMini(0, 0);
+	#else
+		monaLisaBMD = Assets.getBitmapData(MONALISA);
+		monaLisaMiniBMD = Assets.getBitmapData(MONALISA_MINI);
+	#end
+		monaLisaBitmap = new Bitmap(monaLisaBMD);
 		addChildAt(monaLisaBitmap, 0);
 
 		// generate fill colors
@@ -300,7 +315,7 @@ class Demo extends Sprite {
 			}
 		} else {
 			for (p in points) {
-				var sampledColor = monaListBMD.getPixel(Std.int(p.x), Std.int(p.y));
+				var sampledColor = monaLisaMiniBMD.getPixel(Std.int(p.x / 4), Std.int(p.y / 4));
 
 				drawPoints(voronoi.region(p), fillRegions && showRegions ? REGION_COLOR : sampledColor, fillRegions ? sampledColor: null);
 			}
@@ -414,6 +429,8 @@ class Demo extends Sprite {
 
 	public function onKeyDown(e:KeyboardEvent):Void
 	{
+		var deltaPoints = e.shiftKey ? 10 : 1;
+		
 		switch (e.keyCode)
 		{
 			// TOGGLE
@@ -427,16 +444,16 @@ class Demo extends Sprite {
 			case Keyboard.NUMBER_8: showProximityMap = !showProximityMap;
 
 			// POINTS
-			case Keyboard.NUMPAD_ADD, 43 /* or plus next to enter */:
-				points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
+			case Keyboard.UP:
+				for (i in 0...deltaPoints) points.push(new Point(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height));
 				nPoints = points.length;
 				update();
-			case Keyboard.NUMPAD_SUBTRACT, Keyboard.MINUS /* or minus next to RSHIFT */:
-				if (nPoints > 3) {
+			case Keyboard.DOWN:
+				while (deltaPoints-- > 0 && nPoints > 3) {
 					points.pop();
 					nPoints = points.length;
-					update();
 				}
+				update();
 			case Keyboard.R:
 				for (p in points) p.setTo(Math.random() * BOUNDS.width, Math.random() * BOUNDS.height);
 				update();
@@ -491,12 +508,17 @@ class Demo extends Sprite {
 				var c = getCentroid(r);
 				(i == centroids.length) ? centroids.push(c) : centroids[i] = c;
 
-				var distSquared = Point.distanceSquared(c, p);
-				if (distSquared > 4.5) {	// slow down things a bit
-					c.x -= p.x; c.y -= p.y;
-					c.normalize(.75);
-					p.x += c.x;	p.y += c.y;
-				} else {
+				var changed = false;
+				if (nPoints < 100) {
+					var distSquared = Point.distanceSquared(c, p);
+					if (distSquared > 4.5) {	// slow down things a bit
+						c.x -= p.x; c.y -= p.y;
+						c.normalize(.75);
+						p.x += c.x;	p.y += c.y;
+						changed = true;
+					}
+				} 
+				if (!changed) {
 					p.x = c.x; p.y = c.y;
 				}
 			}
