@@ -3675,12 +3675,9 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.update();
 			break;
 		case 83:
-			this.showPoints = this.showHull = this.showOnion = this.showProximityMap = this.showTree = this.showTriangles = this.showRegions = false;
-			this.fillRegions = true;
-			this.sampleImage = true;
 			this.update();
 			var oldSampleFillAlpha = this.SAMPLE_FILL_ALPHA;
-			this.SAMPLE_FILL_ALPHA = .97;
+			this.SAMPLE_FILL_ALPHA = this.sampleImage ? .97 : oldSampleFillAlpha;
 			this.render();
 			this.SAMPLE_FILL_ALPHA = oldSampleFillAlpha;
 			var tempBMD = new openfl_display_BitmapData(this.monaLisaBMD.width,this.monaLisaBMD.height,false,0);
@@ -15694,7 +15691,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 750674;
+	this.version = 913339;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = ["lime","utils","AssetCache"];

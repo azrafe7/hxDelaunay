@@ -471,12 +471,9 @@ class Demo extends Sprite {
 			case Keyboard.M: sampleImage = !sampleImage;
 			case Keyboard.S: 
 			#if (openfl)
-				showPoints = showHull = showOnion = showProximityMap = showTree = showTriangles = showRegions = false;
-				fillRegions = true;
-				sampleImage = true;
 				update();
 				var oldSampleFillAlpha = SAMPLE_FILL_ALPHA;
-				SAMPLE_FILL_ALPHA = .97;
+				SAMPLE_FILL_ALPHA = sampleImage ? .97 : oldSampleFillAlpha;
 				
 				render();
 				
