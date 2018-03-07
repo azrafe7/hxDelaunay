@@ -3,7 +3,7 @@ hxDelaunay
 
 Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) (itself a port of the excellent [nodename/as3delaunay](https://github.com/nodename/as3delaunay)).
 
-[![click for js demo](screenshot.png)](https://rawgit.com/azrafe7/hxdelaunay/master/bin/html5/bin/index.html)
+[![click for js demo](screenshots/screenshot.png)](https://rawgit.com/azrafe7/hxdelaunay/master/bin/html5/bin/index.html)
 
 _click the image above to try the [demo](https://rawgit.com/azrafe7/hxdelaunay/master/bin/html5/bin/index.html) in the browser_
 
@@ -24,10 +24,15 @@ See original authors' links for details and licensing (MIT).
 
 - Delaunay triangulation visualization ([see JS code example](src/DemoJs.hx)).
 
-[![](delaunay.png)](https://rawgit.com/azrafe7/hxDelaunay/master/bin/js/index.html)
+[![](screenshots/delaunay.png)](https://rawgit.com/azrafe7/hxDelaunay/master/bin/js/index.html)
 
 _click on image to see the code in action_
 
+# screenshots
+
+![](screenshots/starry-night-voronoi.png)
+![](screenshots/mona-lisa-hollow-voronoi.png)
+![](screenshots/girl-pearl-earring-voronoi.png)
 
 # haxelib local use
 

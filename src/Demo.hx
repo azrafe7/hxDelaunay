@@ -26,11 +26,11 @@ import openfl.Assets;
 using StringTools;
 
 
-@:bitmap("src/mona-lisa.png")
-class MonaLisa extends flash.display.BitmapData {}
+@:bitmap("assets/mona-lisa.png")
+class Picture extends flash.display.BitmapData {}
 
-@:bitmap("src/mona-lisa-mini.png")
-class MonaLisaMini extends flash.display.BitmapData {}
+@:bitmap("assets/mona-lisa-mini.png")
+class PictureMini extends flash.display.BitmapData {}
 
 /**
  * hxDelaunay openFL demo.
@@ -51,8 +51,8 @@ class Demo extends Sprite {
 	private var ONION_COLOR:Int = 0x10A0FF;
 	private var SELECTED_COLOR:Int = 0x8020F0;
 	private var CENTROID_COLOR:Int = 0x111111;
-	private var MONALISA:String = "src/mona-lisa.png";
-	private var MONALISA_MINI:String = "src/mona-lisa-mini.png";
+	private var PICTURE:String = "assets/mona-lisa.png";
+	private var PICTURE_MINI:String = "assets/mona-lisa-mini.png";
 
 	private var THICKNESS:Float = 1.5;
 	private var ALPHA:Float = 1.;
@@ -82,9 +82,9 @@ class Demo extends Sprite {
 	private var proxymitySprite:Sprite;
 	private var proxymityMap:BitmapData;
 	private var selectedRegion:Array<Point>;
-	private var monaLisaBMD:BitmapData;
-	private var monaLisaBitmap:Bitmap;
-  private var monaLisaMiniBMD:BitmapData; // downscaled by a factor of 4
+	private var pictureBMD:BitmapData;
+	private var pictureBitmap:Bitmap;
+	private var pictureMiniBMD:BitmapData; // downscaled by a factor of 4
 	
 	private var isMouseDown:Bool = false;
 	private var prevMousePos:Point = new Point();
@@ -124,14 +124,15 @@ class Demo extends Sprite {
 		"\n" +
 		" X  relax         : |RELAX|\n" +
 		" A  animate       : |ANIMATE|\n" +
-		" M  mona lisa     : |MONALISA|\n" +
+		" P  picture       : |PICTURE|\n" +
 		"\n\n" +
 		"        POINTS: (|NPOINTS|)\n\n" +
+		" [SHIFT]\n" +
 		" ▲  add\n" +
 		" ▼  remove\n" +
 		"\n" +
 		" R  randomize\n" +
-	#if (openfl)	
+	#if (openfl && !nme)	
 		"\n" +
 		" S  save png\n" +
 	#end
@@ -140,7 +141,7 @@ class Demo extends Sprite {
 		"     move region point" +
 		"\n";
 
-  var sprite:Sprite;
+	var sprite:Sprite;
 
 	public function new () {
 		super ();
@@ -153,16 +154,16 @@ class Demo extends Sprite {
 		addChild(text = getTextField(TEXT, BOUNDS.width + 10, 15));
 		text.height = stage.stageHeight - text.y;  // makes sure it's _fully_ visible
 
-		// mona lisa
+		// picture
 	#if (!jsprime)
-		monaLisaBMD = new MonaLisa(0, 0);
-		monaLisaMiniBMD = new MonaLisaMini(0, 0);
+		pictureBMD = new Picture(0, 0);
+		pictureMiniBMD = new PictureMini(0, 0);
 	#else
-		monaLisaBMD = Assets.getBitmapData(MONALISA);
-		monaLisaMiniBMD = Assets.getBitmapData(MONALISA_MINI);
+		pictureBMD = Assets.getBitmapData(PICTURE);
+		pictureMiniBMD = Assets.getBitmapData(PICTURE_MINI);
 	#end
-		monaLisaBitmap = new Bitmap(monaLisaBMD);
-		addChildAt(monaLisaBitmap, 0);
+		pictureBitmap = new Bitmap(pictureBMD);
+		addChildAt(pictureBitmap, 0);
 
 		// generate fill colors
 		var MAX_COLORS = 10;
@@ -219,14 +220,14 @@ class Demo extends Sprite {
 			.replace("|NPOINTS|", Std.string(nPoints))
 			.replace("|RELAX|", bool2OnOff(relax))
 			.replace("|ANIMATE|", bool2OnOff(animate))
-			.replace("|MONALISA|", bool2OnOff(sampleImage));
+			.replace("|PICTURE|", bool2OnOff(sampleImage));
 	}
 
 	public function render():Void {
 		g.clear();
 
 		if (showRegions || fillRegions) drawRegions();
-		monaLisaBitmap.visible = (sampleImage && (!fillRegions || SAMPLE_FILL_ALPHA < FILL_ALPHA));
+		pictureBitmap.visible = (sampleImage && (!fillRegions || SAMPLE_FILL_ALPHA < FILL_ALPHA));
 		if (showProximityMap) {
 			g.beginBitmapFill(proxymityMap);
 			g.drawRect(0, 0, BOUNDS.width, BOUNDS.height);
@@ -320,7 +321,8 @@ class Demo extends Sprite {
 			}
 		} else {
 			for (p in points) {
-				var sampledColor = monaLisaMiniBMD.getPixel(Std.int(p.x / 4), Std.int(p.y / 4));
+				//var sampledColor = pictureBMD.getPixel(Std.int(p.x), Std.int(p.y)); // use fullscale bitmap for sampling
+				var sampledColor = pictureMiniBMD.getPixel(Std.int(p.x / 4), Std.int(p.y / 4)); // use downscaled bitmap for sampling
 
 				drawPoints(voronoi.region(p), fillRegions && showRegions ? REGION_COLOR : sampledColor, fillRegions ? sampledColor: null);
 			}
@@ -425,16 +427,16 @@ class Demo extends Sprite {
 		tf.selectable = false;
 		tf.x = x;
 		tf.y = y;
-  #if (flash || html5)
+	#if (flash || html5)
 		tf.filters = [TEXT_OUTLINE];
-  #end
+	#end
 		tf.text = text;
 		return tf;
 	}
 
 	public function onKeyDown(e:KeyboardEvent):Void
 	{
-		var deltaPoints = e.shiftKey ? 10 : 1;
+		var deltaPoints = e.shiftKey ? 20 : 1;
 		
 		switch (e.keyCode)
 		{
@@ -468,9 +470,9 @@ class Demo extends Sprite {
 			case Keyboard.A:
 				animate = !animate;
 				relax = false;
-			case Keyboard.M: sampleImage = !sampleImage;
+			case Keyboard.P: sampleImage = !sampleImage;
 			case Keyboard.S: 
-			#if (openfl)
+			#if (openfl && !nme)
 				update();
 				var oldSampleFillAlpha = SAMPLE_FILL_ALPHA;
 				SAMPLE_FILL_ALPHA = sampleImage ? .97 : oldSampleFillAlpha;
@@ -478,8 +480,9 @@ class Demo extends Sprite {
 				render();
 				
 				SAMPLE_FILL_ALPHA = oldSampleFillAlpha;
-				var tempBMD = new BitmapData(monaLisaBMD.width, monaLisaBMD.height, false, 0);
+				var tempBMD = new BitmapData(pictureBMD.width, pictureBMD.height, false, 0);
 				tempBMD.draw(sprite);
+
 				//var tempBMP = new Bitmap(tempBMD);
 				//addChild(tempBMP);
 				//sprite.visible = false;
@@ -502,7 +505,7 @@ class Demo extends Sprite {
 
 	public function savePNG(bmd:BitmapData, filename:String) 
 	{
-	#if (openfl)
+	#if (openfl && !nme)
 		var ba:openfl.utils.ByteArray = bmd.encode(bmd.rect, new openfl.display.PNGEncoderOptions());
 		var fileRef = new openfl.net.FileReference();
 		fileRef.save(ba, filename);

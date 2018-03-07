@@ -14,7 +14,7 @@
 	<set name="SHOW_CONSOLE" value="1" if="debug" />
 
 	<haxelib name="openfl" />
-	<assets path="src" include="*.png" if="jsprime" />
+	<assets path="assets" include="*.png" if="jsprime" />
 
 	<!-- advanced telemetry for use with Scout -->
 	<!--<haxeflag name="-D advanced-telemetry" if="flash" />-->
