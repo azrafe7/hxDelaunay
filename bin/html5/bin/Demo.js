@@ -952,7 +952,7 @@ $hxClasses["ApplicationMain"] = ApplicationMain;
 ApplicationMain.__name__ = ["ApplicationMain"];
 ApplicationMain.main = function() {
 	var projectName = "Demo";
-	var config = { build : "39", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
+	var config = { build : "40", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
 	lime_system_System.__registerEntryPoint(projectName,ApplicationMain.create,config);
 };
 ApplicationMain.create = function(config) {
@@ -3218,7 +3218,7 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Demo = function() {
-	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  convex hull   : |HULL|\n" + " 6  spanning tree : |TREE|\n" + " 7  onion         : |ONION|\n" + " 8  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " P  picture       : |PICTURE|\n" + "\n\n" + "        POINTS: (|NPOINTS|)\n\n" + " [SHIFT]\n" + " ▲  add\n" + " ▼  remove\n" + "\n" + " R  randomize\n" + "\n" + " S  save png\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
+	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  convex hull   : |HULL|\n" + " 6  spanning tree : |TREE|\n" + " 7  onion         : |ONION|\n" + " 8  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " P  picture       : |PICTURE|\n" + "\n\n" + "        POINTS: (|NPOINTS|)\n\n" + " [SHIFT] + \n" + "  ▲  add point/s\n" + "  ▼  remove point/s\n" + "\n" + " R  randomize\n" + "\n" + " S  save png\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
 	this.dt = 0;
 	this.startTime = 0;
 	this.sampleImage = false;
@@ -15691,7 +15691,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 367270;
+	this.version = 797310;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = ["lime","utils","AssetCache"];

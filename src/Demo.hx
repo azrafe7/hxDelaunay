@@ -126,10 +126,10 @@ class Demo extends Sprite {
 		" A  animate       : |ANIMATE|\n" +
 		" P  picture       : |PICTURE|\n" +
 		"\n\n" +
-		"        POINTS: (|NPOINTS|)\n\n" +
-		" [SHIFT]\n" +
-		" ▲  add\n" +
-		" ▼  remove\n" +
+		"       POINTS: (|NPOINTS|)\n\n" +
+		" [SHIFT] + \n" +
+		"  ▲  add point/s\n" +
+		"  ▼  remove point/s\n" +
 		"\n" +
 		" R  randomize\n" +
 	#if (openfl && !nme)	
