@@ -28,11 +28,10 @@ See original authors' links for details and licensing (MIT).
 
 _click on image to see the code in action_
 
-# screenshots
+## more catchy screenshots
 
-![](screenshots/starry-night-voronoi.png)
-![](screenshots/mona-lisa-hollow-voronoi.png)
-![](screenshots/girl-pearl-earring-voronoi.png)
+![](screenshots/starry-night-voronoi.png) ![](screenshots/mona-lisa-hollow-voronoi.png)
+![](screenshots/girl-pearl-earring-voronoi.png) ![](screenshots/lena-voronoi.png)
 
 # haxelib local use
 
