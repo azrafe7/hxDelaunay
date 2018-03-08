@@ -127,7 +127,7 @@ class Demo extends Sprite {
 		" X  relax         : |RELAX|\n" +
 		" A  animate       : |ANIMATE|\n" +
 		" P  picture       : |PICTURE|\n" +
-		"\n\n" +
+		"\n" +
 		"       POINTS: (|NPOINTS|)\n\n" +
 		"  [SHIFT] + \n" +
 		"  ▲  add point/s\n" +
@@ -138,7 +138,7 @@ class Demo extends Sprite {
 		"\n" +
 		" S  save png\n" +
 	#end
-		"\n\n" +
+		"\n" +
 		"      click & drag to\n" +
 		"     move region point" +
 		"\n";
