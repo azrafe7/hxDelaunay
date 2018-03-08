@@ -952,7 +952,7 @@ $hxClasses["ApplicationMain"] = ApplicationMain;
 ApplicationMain.__name__ = ["ApplicationMain"];
 ApplicationMain.main = function() {
 	var projectName = "Demo";
-	var config = { build : "40", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
+	var config = { build : "41", company : "azrafe7", file : "Demo", fps : 60, name : "Demo", orientation : "", packageName : "lib.azrafe7.hxDelaunay", version : "1.0.0", windows : [{ allowHighDPI : false, alwaysOnTop : false, antialiasing : 0, background : 2236962, borderless : false, colorDepth : 16, depthBuffer : false, display : 0, fullscreen : false, hardware : true, height : 500, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, stencilBuffer : true, title : "Demo", vsync : false, width : 700, x : null, y : null}]};
 	lime_system_System.__registerEntryPoint(projectName,ApplicationMain.create,config);
 };
 ApplicationMain.create = function(config) {
@@ -3218,7 +3218,7 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Demo = function() {
-	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  convex hull   : |HULL|\n" + " 6  spanning tree : |TREE|\n" + " 7  onion         : |ONION|\n" + " 8  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " P  picture       : |PICTURE|\n" + "\n\n" + "        POINTS: (|NPOINTS|)\n\n" + " [SHIFT] + \n" + "  ▲  add point/s\n" + "  ▼  remove point/s\n" + "\n" + " R  randomize\n" + "\n" + " S  save png\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
+	this.TEXT = "         hxDelaunay \n" + "    (ported by azrafe7)\n" + "\n" + "          TOGGLE:\n\n" + " 1  points        : |POINTS|\n" + " 2  regions       : |REGIONS|\n" + " 3  fill regions  : |FILL_REGIONS|\n" + " 4  triangles     : |TRIANGLES|\n" + " 5  fill tris     : |FILL_TRIANGLES|\n" + " 6  convex hull   : |HULL|\n" + " 7  spanning tree : |TREE|\n" + " 8  onion         : |ONION|\n" + " 9  proximity map : |PROXIMITY|\n" + "\n" + " X  relax         : |RELAX|\n" + " A  animate       : |ANIMATE|\n" + " P  picture       : |PICTURE|\n" + "\n\n" + "       POINTS: (|NPOINTS|)\n\n" + "  [SHIFT] + \n" + "  ▲  add point/s\n" + "  ▼  remove point/s\n" + "\n" + " R  randomize\n" + "\n" + " S  save png\n" + "\n\n" + "      click & drag to\n" + "     move region point" + "\n";
 	this.dt = 0;
 	this.startTime = 0;
 	this.sampleImage = false;
@@ -3228,6 +3228,7 @@ var Demo = function() {
 	this.showOnion = false;
 	this.showTree = false;
 	this.showHull = false;
+	this.fillTriangles = false;
 	this.showTriangles = false;
 	this.fillRegions = false;
 	this.showRegions = true;
@@ -3345,6 +3346,7 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 	,showRegions: null
 	,fillRegions: null
 	,showTriangles: null
+	,fillTriangles: null
 	,showHull: null
 	,showTree: null
 	,showOnion: null
@@ -3380,7 +3382,7 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 		this.updateProximityMap();
 	}
 	,updateText: function() {
-		this.text.set_text(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(this.TEXT,"|POINTS|",this.showPoints ? "[ON]" : "[OFF]"),"|REGIONS|",this.showRegions ? "[ON]" : "[OFF]"),"|FILL|",this.fillRegions ? "[ON]" : "[OFF]"),"|TRIANGLES|",this.showTriangles ? "[ON]" : "[OFF]"),"|HULL|",this.showHull ? "[ON]" : "[OFF]"),"|TREE|",this.showTree ? "[ON]" : "[OFF]"),"|ONION|",this.showOnion ? "[ON]" : "[OFF]"),"|PROXIMITY|",this.showProximityMap ? "[ON]" : "[OFF]"),"|NPOINTS|",Std.string(this.nPoints)),"|RELAX|",this.relax ? "[ON]" : "[OFF]"),"|ANIMATE|",this.animate ? "[ON]" : "[OFF]"),"|PICTURE|",this.sampleImage ? "[ON]" : "[OFF]"));
+		this.text.set_text(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(this.TEXT,"|POINTS|",this.showPoints ? "[ON]" : "[OFF]"),"|REGIONS|",this.showRegions ? "[ON]" : "[OFF]"),"|FILL_REGIONS|",this.fillRegions ? "[ON]" : "[OFF]"),"|TRIANGLES|",this.showTriangles ? "[ON]" : "[OFF]"),"|FILL_TRIANGLES|",this.fillTriangles ? "[ON]" : "[OFF]"),"|HULL|",this.showHull ? "[ON]" : "[OFF]"),"|TREE|",this.showTree ? "[ON]" : "[OFF]"),"|ONION|",this.showOnion ? "[ON]" : "[OFF]"),"|PROXIMITY|",this.showProximityMap ? "[ON]" : "[OFF]"),"|NPOINTS|",Std.string(this.nPoints)),"|RELAX|",this.relax ? "[ON]" : "[OFF]"),"|ANIMATE|",this.animate ? "[ON]" : "[OFF]"),"|PICTURE|",this.sampleImage ? "[ON]" : "[OFF]"));
 	}
 	,render: function() {
 		this.g.clear();
@@ -3393,8 +3395,29 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.g.drawRect(0,0,this.BOUNDS.width,this.BOUNDS.height);
 			this.g.endFill();
 		}
-		if(this.showTriangles) {
-			this.drawSegments(this.triangles,this.TRIANGLE_COLOR);
+		if(this.showTriangles || this.fillTriangles) {
+			if(!this.sampleImage) {
+				var fillIdx = -1;
+				var _g = 0;
+				var _g1 = this.voronoi.triangles();
+				while(_g < _g1.length) {
+					var tri = _g1[_g];
+					++_g;
+					fillIdx = (fillIdx + 1) % this.fillColors.length;
+					var fillColor = this.fillTriangles ? this.fillColors[fillIdx] & 16711680 : null;
+					this.drawPoints(tri.points,this.fillTriangles && !this.showTriangles ? this.fillColors[fillIdx] & 16711680 : this.TRIANGLE_COLOR,fillColor);
+				}
+			} else {
+				var _g2 = 0;
+				var _g11 = this.voronoi.triangles();
+				while(_g2 < _g11.length) {
+					var tri1 = _g11[_g2];
+					++_g2;
+					var p = this.getCentroid(tri1.points);
+					var sampledColor = this.pictureBMD.getPixel(p.x | 0,p.y | 0);
+					this.drawPoints(tri1.points,this.fillTriangles && this.showTriangles ? this.TRIANGLE_COLOR : sampledColor,this.fillTriangles ? sampledColor : null);
+				}
+			}
 		}
 		if(this.showTree) {
 			this.drawSegments(this.tree,this.TREE_COLOR);
@@ -3646,15 +3669,18 @@ Demo.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.showTriangles = !this.showTriangles;
 			break;
 		case 53:
-			this.showHull = !this.showHull;
+			this.fillTriangles = !this.fillTriangles;
 			break;
 		case 54:
-			this.showTree = !this.showTree;
+			this.showHull = !this.showHull;
 			break;
 		case 55:
-			this.showOnion = !this.showOnion;
+			this.showTree = !this.showTree;
 			break;
 		case 56:
+			this.showOnion = !this.showOnion;
+			break;
+		case 57:
 			this.showProximityMap = !this.showProximityMap;
 			break;
 		case 65:
@@ -6434,6 +6460,9 @@ com_nodename_delaunay_Voronoi.prototype = {
 	}
 	,regions: function() {
 		return this._sites.regions(this._plotBounds);
+	}
+	,triangles: function() {
+		return this._triangles;
 	}
 	,nearestSitePoint: function(x,y) {
 		return this._sites.nearestSitePoint(x,y);
@@ -15691,7 +15720,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 797310;
+	this.version = 737210;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = ["lime","utils","AssetCache"];

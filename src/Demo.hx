@@ -94,6 +94,7 @@ class Demo extends Sprite {
 	private var showRegions:Bool = true;
 	private var fillRegions:Bool = false;
 	private var showTriangles:Bool = false;
+	private var fillTriangles:Bool = false;
 	private var showHull:Bool = false;
 	private var showTree:Bool = false;
 	private var showOnion:Bool = false;
@@ -110,24 +111,25 @@ class Demo extends Sprite {
 
 	private var TEXT:String =
 		"         hxDelaunay \n" +
-		"    (ported by azrafe7)\n\n" +
+		"    (ported by azrafe7)\n" +
 		"\n" +
 		"          TOGGLE:\n\n" +
 		" 1  points        : |POINTS|\n" +
 		" 2  regions       : |REGIONS|\n" +
-		" 3  fill regions  : |FILL|\n" +
+		" 3  fill regions  : |FILL_REGIONS|\n" +
 		" 4  triangles     : |TRIANGLES|\n" +
-		" 5  convex hull   : |HULL|\n" +
-		" 6  spanning tree : |TREE|\n" +
-		" 7  onion         : |ONION|\n" +
-		" 8  proximity map : |PROXIMITY|\n" +
+		" 5  fill tris     : |FILL_TRIANGLES|\n" +
+		" 6  convex hull   : |HULL|\n" +
+		" 7  spanning tree : |TREE|\n" +
+		" 8  onion         : |ONION|\n" +
+		" 9  proximity map : |PROXIMITY|\n" +
 		"\n" +
 		" X  relax         : |RELAX|\n" +
 		" A  animate       : |ANIMATE|\n" +
 		" P  picture       : |PICTURE|\n" +
 		"\n\n" +
 		"       POINTS: (|NPOINTS|)\n\n" +
-		" [SHIFT] + \n" +
+		"  [SHIFT] + \n" +
 		"  ▲  add point/s\n" +
 		"  ▼  remove point/s\n" +
 		"\n" +
@@ -211,8 +213,9 @@ class Demo extends Sprite {
 		text.text = TEXT
 			.replace("|POINTS|", bool2OnOff(showPoints))
 			.replace("|REGIONS|", bool2OnOff(showRegions))
-			.replace("|FILL|", bool2OnOff(fillRegions))
+			.replace("|FILL_REGIONS|", bool2OnOff(fillRegions))
 			.replace("|TRIANGLES|", bool2OnOff(showTriangles))
+			.replace("|FILL_TRIANGLES|", bool2OnOff(fillTriangles))
 			.replace("|HULL|", bool2OnOff(showHull))
 			.replace("|TREE|", bool2OnOff(showTree))
 			.replace("|ONION|", bool2OnOff(showOnion))
@@ -233,7 +236,7 @@ class Demo extends Sprite {
 			g.drawRect(0, 0, BOUNDS.width, BOUNDS.height);
 			g.endFill();
 		}
-		if (showTriangles) drawTriangles();
+		if (showTriangles || fillTriangles) drawTriangles();
 		if (showTree) drawTree();
 		if (showOnion) drawOnion();
 		if (showHull) drawHull();
@@ -331,7 +334,23 @@ class Demo extends Sprite {
 
 	inline public function drawTriangles():Void
 	{
-		drawSegments(triangles, TRIANGLE_COLOR);
+		if (!sampleImage) {
+			var fillIdx = -1;
+			for (tri in voronoi.triangles()) {
+				fillIdx = (fillIdx + 1) % fillColors.length;
+				var fillColor = fillTriangles ? fillColors[fillIdx] & 0xFF0000 : null;
+
+				drawPoints(tri.points, fillTriangles && !showTriangles ? fillColors[fillIdx] & 0xFF0000 : TRIANGLE_COLOR, fillColor);
+			}
+		} else {
+			for (tri in voronoi.triangles()) {
+				var p = getCentroid(tri.points);
+				var sampledColor = pictureBMD.getPixel(Std.int(p.x), Std.int(p.y)); // use fullscale bitmap for sampling
+				//var sampledColor = pictureMiniBMD.getPixel(Std.int(p.x / 4), Std.int(p.y / 4)); // use downscaled bitmap for sampling
+
+				drawPoints(tri.points, fillTriangles && showTriangles ? TRIANGLE_COLOR: sampledColor, fillTriangles ? sampledColor: null);
+			}
+		}
 	}
 
 	inline public function drawHull():Void
@@ -445,10 +464,11 @@ class Demo extends Sprite {
 			case Keyboard.NUMBER_2: showRegions = !showRegions;
 			case Keyboard.NUMBER_3: fillRegions = !fillRegions;
 			case Keyboard.NUMBER_4: showTriangles = !showTriangles;
-			case Keyboard.NUMBER_5: showHull = !showHull;
-			case Keyboard.NUMBER_6: showTree = !showTree;
-			case Keyboard.NUMBER_7: showOnion = !showOnion;
-			case Keyboard.NUMBER_8: showProximityMap = !showProximityMap;
+			case Keyboard.NUMBER_5: fillTriangles = !fillTriangles;
+			case Keyboard.NUMBER_6: showHull = !showHull;
+			case Keyboard.NUMBER_7: showTree = !showTree;
+			case Keyboard.NUMBER_8: showOnion = !showOnion;
+			case Keyboard.NUMBER_9: showProximityMap = !showProximityMap;
 
 			// POINTS
 			case Keyboard.UP:
