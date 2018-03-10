@@ -33,6 +33,8 @@ _click on image to see the code in action_
 ![](screenshots/starry-night-voronoi.png) ![](screenshots/mona-lisa-hollow-voronoi.png)
 ![](screenshots/girl-pearl-earring-voronoi.png) ![](screenshots/lena-voronoi.png)
 
+<sup>(well... I've cheated a bit in some of these, but not much ;)</sup>
+
 # haxelib local use
 
 Currently there is no haxelib, but you can use this git repo as a development directory:
