@@ -30,8 +30,8 @@ _click on image to see the code in action_
 
 ## more screenshots
 
-![](screenshots/starry-night-voronoi.png) ![](screenshots/mona-lisa-hollow-voronoi.png)
-![](screenshots/girl-pearl-earring-voronoi.png) ![](screenshots/lena-voronoi.png)
+![](screenshots/starry-night-320.png) ![](screenshots/starry-night-voronoi.png) ![](screenshots/mona-lisa-320.png) ![](screenshots/mona-lisa-hollow-voronoi.png)
+![](screenshots/girl-pearl-earring-320.png) ![](screenshots/girl-pearl-earring-voronoi.png) ![](screenshots/lena-320.png) ![](screenshots/lena-voronoi.png)
 
 <sup>(well... I've cheated a bit in some of these, but not much ;)</sup>
 
