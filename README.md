@@ -3,9 +3,9 @@ hxDelaunay
 
 Port to Haxe 3 of [sledorze/hxDelaunay](https://github.com/sledorze/hxDelaunay) (itself a port of the excellent [nodename/as3delaunay](https://github.com/nodename/as3delaunay)).
 
-[![click for js demo](screenshots/screenshot.png)](https://rawgit.com/azrafe7/hxdelaunay/master/bin/html5/bin/index.html)
+[![click for js demo](screenshots/screenshot.png)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/azrafe7/hxDelaunay/refs/heads/master/bin/html5/bin/index.html)
 
-_click the image above to try the [demo](https://rawgit.com/azrafe7/hxdelaunay/master/bin/html5/bin/index.html) in the browser_
+_click the image above to try the [demo](https://htmlpreview.github.io/?https://raw.githubusercontent.com/azrafe7/hxDelaunay/refs/heads/master/bin/html5/bin/index.html) in the browser_
 
 No external dependencies (demo still needs openfl). Tested on flash/js/cpp/neko.
 
